@@ -3,29 +3,29 @@ import Vapor
 /// A container that is passed to the `initialize` func of
 /// the `OAuthTokenRepresentable` protocol to make a new token.
 public struct RetrievedToken {
-    var accessToken: String
-    var tokenType: String
-    var scopes: [String]
-    var expiresIn: Int
-    var refreshToken: String
-    var issuer: Issuer
+    public var accessToken: String
+    public var tokenType: String
+    public var scopes: [String]
+    public var expiresIn: Int
+    public var refreshToken: String
+    public var issuer: Issuer
 }
 
 /// Parameters that are passed to callback request by the provider,
 /// after a successful authorization.
 struct AuthorizationQueryParameters: Content {
-    var code: String
-    var state: String
+    public var code: String
+    public var state: String
 }
 
 /// Access token container.
 public struct UserAccessToken {
-    var accessToken: String
-    var tokenType: String
-    var scope: String?
-    var scopes: [String]?
-    var expiresIn: Int
-    var refreshToken: String
+    public var accessToken: String
+    public var tokenType: String
+    public var scope: String?
+    public var scopes: [String]?
+    public var expiresIn: Int
+    public var refreshToken: String
 }
 
 extension UserAccessToken: Content {
@@ -63,11 +63,11 @@ extension UserAccessToken: Content {
     
 /// Refresh token container.
 public struct UserRefreshToken {
-    var accessToken: String
-    var tokenType: String
-    var scope: String?
-    var scopes: [String]?
-    var expiresIn: Int
+    public var accessToken: String
+    public var tokenType: String
+    public var scope: String?
+    public var scopes: [String]?
+    public var expiresIn: Int
 }
 
 
@@ -103,9 +103,9 @@ extension UserRefreshToken: Content {
 
 /// App access-token container.
 struct AppAccessToken: Content {
-    var accessToken: String
-    var expiresIn: Int
-    var tokenType: String
+    public var accessToken: String
+    public var expiresIn: Int
+    public var tokenType: String
     
     enum CodingKeys: String, CodingKey {
         case accessToken = "access_token"
