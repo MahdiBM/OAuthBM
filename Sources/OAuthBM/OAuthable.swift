@@ -190,7 +190,7 @@ internal extension OAuthable {
 
 //MARK: - Public Declarations
 
-extension OAuthable {
+public extension OAuthable {
     /// Tries to acquire an app access token.
     /// - Throws: OAuthableError in case of error.
     func getAppAccessToken(_ req: Request) throws -> EventLoopFuture<AppAccessToken> {

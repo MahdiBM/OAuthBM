@@ -102,7 +102,7 @@ extension UserRefreshToken: Content {
 
 
 /// App access-token container.
-struct AppAccessToken: Content {
+public struct AppAccessToken: Content {
     public var accessToken: String
     public var expiresIn: Int
     public var tokenType: String
