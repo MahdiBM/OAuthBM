@@ -4,7 +4,7 @@ import Vapor
 
 //MARK: - Public Funcs
 
-extension OAuthable where Self: OAuthTokenConvertible {
+public extension OAuthable where Self: OAuthTokenConvertible {
 
     /// Takes care of callback endpoint's actions,
     /// after the user hits the authorization endpoint

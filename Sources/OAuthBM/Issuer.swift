@@ -1,6 +1,6 @@
 import Vapor
 
-/// The issuer of the token.
+/// The issuer of an oauth token.
 public struct Issuer: RawRepresentable {
     private(set) public var rawValue: String
     
