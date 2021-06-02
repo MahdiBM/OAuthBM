@@ -1,11 +1,11 @@
 import Vapor
 
 /// Errors that can be thrown by OAuthable's functions.
-enum OAuthableError: AbortError {
+public enum OAuthableError: AbortError {
     case providerError(status: HTTPStatus, error: ProviderError)
     case serverError(status: HTTPStatus, error: ServerError)
     
-    var reason: String {
+    public var reason: String {
         switch self {
         case let .providerError(_, error):
             return "Provider failed with error: \(error.description)."
@@ -14,7 +14,7 @@ enum OAuthableError: AbortError {
         }
     }
     
-    var status: HTTPResponseStatus {
+    public var status: HTTPResponseStatus {
         switch self {
         case .providerError(let status, _): return status
         case .serverError(let status, _): return status
@@ -24,7 +24,7 @@ enum OAuthableError: AbortError {
 
 /// Equatable Conformance.
 extension OAuthableError: Equatable {
-    static func == (lhs: OAuthableError, rhs: OAuthableError) -> Bool {
+    public static func == (lhs: OAuthableError, rhs: OAuthableError) -> Bool {
         lhs.reason == rhs.reason
     }
 }
