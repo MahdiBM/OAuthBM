@@ -27,3 +27,6 @@ extension Issuer: CustomStringConvertible, CustomDebugStringConvertible {
     public var description: String { rawValue }
     public var debugDescription: String { .init(reflecting: rawValue) }
 }
+
+/// Equatable conformance.
+extension Issuer: Equatable { }
