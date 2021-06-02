@@ -81,8 +81,9 @@ internal extension OAuthable {
         let queryParametersEncode: Void? = try? self.queryParametersPolicy
             .inject(parameters: queryParams, into: &clientRequest)
         guard queryParametersEncode != nil else {
-            throw OAuthableError.internalFailure(
-                reason: .queryParametersEncodeError(policy: queryParametersPolicy)
+            throw OAuthableError.serverError(
+                status: .preconditionFailed,
+                error: .queryParametersEncode(policy: queryParametersPolicy)
             )
         }
         
@@ -104,8 +105,9 @@ internal extension OAuthable {
         let queryParametersEncode: Void? = try? self.queryParametersPolicy
             .inject(parameters: queryParams, into: &clientRequest)
         guard queryParametersEncode != nil else {
-            throw OAuthableError.internalFailure(
-                reason: .queryParametersEncodeError(policy: queryParametersPolicy)
+            throw OAuthableError.serverError(
+                status: .preconditionFailed,
+                error: .queryParametersEncode(policy: queryParametersPolicy)
             )
         }
         
@@ -126,8 +128,9 @@ internal extension OAuthable {
         let queryParametersEncode: Void? = try? self.queryParametersPolicy
             .inject(parameters: queryParams, into: &clientRequest)
         guard queryParametersEncode != nil else {
-            throw OAuthableError.internalFailure(
-                reason: .queryParametersEncodeError(policy: queryParametersPolicy)
+            throw OAuthableError.serverError(
+                status: .preconditionFailed,
+                error: .queryParametersEncode(policy: queryParametersPolicy)
             )
         }
         
@@ -161,11 +164,12 @@ internal extension OAuthable {
                 do {
                     return try res.content.decode(T.self)
                 } catch {
-                    throw OAuthableError.serverError(status: .badRequest, error: "\(error)")
+                    throw OAuthableError.serverError(
+                        status: .badRequest, error: .unknown(error: "\(error)"))
                 }
             } else {
                 if let error = try? req.query.get(String.self, at: "error"),
-                   let authError = OAuthableError.AuthorizationError(rawValue: error) {
+                   let authError = OAuthableError.ProviderError(rawValue: error) {
                     throw OAuthableError.providerError(status: res.status, error: authError)
                 } else if let error = try? res.content.decode(ErrorResponse.self) {
                     if error.message == "Invalid refresh token" {
@@ -228,7 +232,7 @@ extension OAuthable {
         
         guard let params = try? req.query.decode(QueryParams.self) else {
             if let error = try? req.query.get(String.self, at: "error"),
-               let oauthError = OAuthableError.AuthorizationError(rawValue: error) {
+               let oauthError = OAuthableError.ProviderError(rawValue: error) {
                 return err(OAuthableError.providerError(status: .badRequest, error: oauthError))
             } else {
                 return err(OAuthableError.providerError(
@@ -238,7 +242,7 @@ extension OAuthable {
         
         guard let state = req.session.data["state"],
               params.state == state else {
-            return err(OAuthableError.invalidCookie)
+            return err(OAuthableError.serverError(status: .badRequest, error: .invalidCookie))
         }
         req.session.destroy()
         

@@ -2,25 +2,15 @@ import Vapor
 
 /// Errors that can be thrown by OAuthable's functions.
 enum OAuthableError: AbortError {
-    case providerError(status: HTTPStatus, error: AuthorizationError)
-    case serverError(status: HTTPStatus, error: String)
-    case internalFailure(reason: InternalFailureReason)
-    case invalidCookie
-    case invalidRefreshToken
+    case providerError(status: HTTPStatus, error: ProviderError)
+    case serverError(status: HTTPStatus, error: ServerError)
     
     var reason: String {
         switch self {
         case let .providerError(_, error):
             return "Provider failed with error: \(error.description)."
         case let .serverError(_, error):
-            return "Servers failed with error: \(error)"
-        case .internalFailure(let reason):
-            return "Servers internally failed with the following message: \(reason.description)"
-        case .invalidCookie:
-            return "Could not approve the legitimacy of your request. Please use a web"
-                + " browser that allows cookies (e.g. Google Chrome, Firefox, Microsoft Edge), or enable cookies for this website."
-        case .invalidRefreshToken:
-            return "Refresh-Token is invalid. You have probably revoked our access."
+            return "Servers failed with error: \(error.description)."
         }
     }
     
@@ -28,24 +18,6 @@ enum OAuthableError: AbortError {
         switch self {
         case .providerError(let status, _): return status
         case .serverError(let status, _): return status
-        case .internalFailure: return .internalServerError
-        case .invalidCookie: return .badRequest
-        case .invalidRefreshToken: return .badRequest
-        }
-    }
-}
-
-extension OAuthableError {
-    /// Reasons for an internal failure.
-    enum InternalFailureReason {
-        case queryParametersEncodeError(policy: QueryParametersPolicy)
-        
-        fileprivate var description: String {
-            switch self {
-            case .queryParametersEncodeError(let policy):
-                return "Failed to encode query parameters into"
-                    + " the request using policy `\(policy.rawValue)`."
-            }
         }
     }
 }
@@ -58,7 +30,29 @@ extension OAuthableError: Equatable {
 }
 
 extension OAuthableError {
-    public enum AuthorizationError: Equatable {
+    public enum ServerError: Equatable {
+        case invalidCookie
+        case queryParametersEncode(policy: QueryParametersPolicy)
+        case unknown(error: String?)
+        
+        fileprivate var description: String {
+            switch self {
+            case .invalidCookie:
+                return "Could not approve the legitimacy of your request. Please use a web"
+                    + " browser that allows cookies (e.g. Google Chrome, Firefox, Microsoft Edge)"
+                    + " , or enable cookies for this website."
+            case .queryParametersEncode(let policy):
+                return "Failed to encode query parameters into"
+                    + " the request using policy `\(policy.rawValue)`."
+            case .unknown(let error): return "UNKNOWN: " + (error ?? "NIL")
+            }
+        }
+        
+    }
+}
+
+extension OAuthableError {
+    public enum ProviderError: Equatable {
         case unsupportedOverHttp
         case versionRejected
         case parameterAbsent

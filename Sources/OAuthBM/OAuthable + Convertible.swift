@@ -34,7 +34,8 @@ public extension OAuthable where Self: OAuthTokenConvertible {
             switch result {
             case let .success(token): return req.eventLoop.future(token)
             case let .failure(error):
-                if let error = error as? OAuthableError, error == .invalidRefreshToken {
+                if let error = error as? OAuthableError,
+                   error == .providerError(status: .badRequest, error: .invalidToken) {
                     /// Delete the token if its been revoked.
                     return token.delete(on: req.db)
                         .flatMapThrowing({ throw error })
