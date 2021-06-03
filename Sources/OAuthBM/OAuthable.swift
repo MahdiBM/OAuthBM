@@ -206,13 +206,14 @@ public extension OAuthable {
     /// Redirects user to the provider page where they're asked to give this app permissions.
     func requestAuthorization(
         _ req: Request,
+        state: String? = nil,
         scopes: [Scopes] = Array(Scopes.allCases),
-        extraArgs args: String? = nil)
+        extraArg arg: String? = nil)
     throws -> Response {
-        let state = String.random(length: 64)
+        let state = state ?? String.random(length: 64)
         var authUrl = self.authorizationRedirectUrl(state: state, scopes: scopes)
-        if let args = args {
-            authUrl = authUrl + "&" + args
+        if let arg = arg {
+            authUrl = authUrl + "&" + arg
         }
         req.session.data["state"] = state
         return req.redirect(to: authUrl)

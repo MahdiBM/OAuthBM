@@ -6,13 +6,13 @@ struct TestProvider: OAuthable {
     
     let clientSecret = "clientSecret"
     
-    var callbackUrl = "http://localhost:9000/v1/oauth/callback"
+    let callbackUrl = "http://host:port/address"
     
     let providerAuthorizationUrl = "https://id.twitch.tv/oauth2/authorize"
     
     let providerTokenUrl = "https://id.twitch.tv/oauth2/token"
     
-    var issuer: Issuer = .twitch
+    let issuer: Issuer = .twitch
     
     enum Scopes: String, CaseIterable {
         case analyticsReadExtensions = "analytics:read:extensions"

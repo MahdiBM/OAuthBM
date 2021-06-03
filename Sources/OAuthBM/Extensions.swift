@@ -1,6 +1,6 @@
 import Vapor
 
-internal extension ByteBuffer {
+extension ByteBuffer {
     var contentString: String {
         .init(decoding: self.readableBytesView, as: UTF8.self)
     }
