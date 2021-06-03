@@ -1,6 +1,14 @@
 import Vapor
 
 /// The issuer of an oauth token.
+///
+/// You should extend `Issuer` and add a static member for your issuer:
+/// ```swift
+/// extension Issuer {
+///     static let twitch = Issuer(rawValue: "twitch")
+/// }
+/// ```
+///
 public struct Issuer: RawRepresentable {
     private(set) public var rawValue: String
     

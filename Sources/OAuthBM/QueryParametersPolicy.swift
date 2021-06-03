@@ -1,14 +1,12 @@
 import Vapor
 
 /// Different ways of encoding query parameters into a request.
+///
+/// Some providers like `Spotify` don't work with `.passInUrl`,
+/// But most providers should work well with `.passInUrl`.
+/// If your provider says some necessary headers/query-params
+/// are missing, then you should try `.useUrlEncodedForm`.
 public enum QueryParametersPolicy: String {
-    /*
-     Some providers like `Spotify` don't work with `.passInUrl`,
-     But most providers should work well with `.passInUrl`.
-     If your provider says some necessary headers/query-params
-     are missing, then you should try `.useUrlEncodedForm`.
-     */
-    
     /// Encodes parameters as query strings.
     case passInUrl
     /// Encodes parameters as url-encoded form.

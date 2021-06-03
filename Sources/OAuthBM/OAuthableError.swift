@@ -1,10 +1,13 @@
 import Vapor
 
-/// Errors that can be thrown by OAuthable's functions.
+/// Errors that can be thrown by OAuthable's declarations.
 public enum OAuthableError: AbortError {
+    /// Errors thrown by the provider.
     case providerError(status: HTTPStatus = .badRequest, error: ProviderError)
+    /// Errors thrown by the server.
     case serverError(status: HTTPStatus = .badRequest, error: ServerError)
     
+    /// Reason for this error.
     public var reason: String {
         switch self {
         case let .providerError(_, error):
@@ -14,6 +17,7 @@ public enum OAuthableError: AbortError {
         }
     }
     
+    /// Status code of the error.
     public var status: HTTPResponseStatus {
         switch self {
         case .providerError(let status, _): return status
