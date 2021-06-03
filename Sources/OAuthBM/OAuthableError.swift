@@ -2,8 +2,8 @@ import Vapor
 
 /// Errors that can be thrown by OAuthable's functions.
 public enum OAuthableError: AbortError {
-    case providerError(status: HTTPStatus, error: ProviderError)
-    case serverError(status: HTTPStatus, error: ServerError)
+    case providerError(status: HTTPStatus = .badRequest, error: ProviderError)
+    case serverError(status: HTTPStatus = .badRequest, error: ServerError)
     
     public var reason: String {
         switch self {

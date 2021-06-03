@@ -33,6 +33,7 @@ public enum QueryParametersPolicy: String {
 
 /// Helps encode query parameters into a request.
 struct QueryParameters: Content {
+    //MARK: Stuff that might need to be passed as query params into a OAuth-2 request.
     var client_id: String?
     var client_secret: String?
     var response_type: String?
@@ -44,6 +45,7 @@ struct QueryParameters: Content {
     var code: String?
     
     /// The pairs of key-values that can be passed into the url.
+    /// 
     /// example: ["key1=value1", "key2=value2"]
     private var queryStrings: [String] {
         var allValues = [String?]()
@@ -65,6 +67,7 @@ struct QueryParameters: Content {
     }
     
     /// The string to be passed at the end of a url.
+    ///
     /// example: "key1=value1&key2=value2&key3=value3"
     var queryString: String {
         self.queryStrings.joined(separator: "&")

@@ -12,6 +12,9 @@ public extension OAuthable where Self: OAuthTokenConvertible {
     /// - Throws: OAuthableError in case of error.
     func authorizationCallback(_ req: Request)
     -> EventLoopFuture<(state: String, token: Tokens)> {
+        req.logger.trace("OAuth2 authorization callback called.", metadata: [
+            "type": .string("\(Self.self)")
+        ])
         var oauthable: some OAuthable { self }
         return oauthable.authorizationCallback(req).flatMap { state, accessToken in
             let oauthToken = accessToken.convertToOAuthToken(
@@ -62,8 +65,16 @@ public extension OAuthable where Self: OAuthTokenConvertible {
     /// returns the same token if it has not expired.
     func renewTokenIfExpired(_ req: Request, token: Tokens) -> EventLoopFuture<Tokens> {
         if token.hasExpired {
+            req.logger.trace("Token has expired. Will try to acquire new one.", metadata: [
+                "type": .string("\(Self.self)"),
+                "token": .stringConvertible(token),
+            ])
             return renewToken(req, token: token)
         } else {
+            req.logger.trace("Token has not expired. Will return the current token.", metadata: [
+                "type": .string("\(Self.self)"),
+                "token": .stringConvertible(token),
+            ])
             return req.eventLoop.future(token)
         }
     }

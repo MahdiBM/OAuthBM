@@ -193,9 +193,13 @@ internal extension OAuthable {
 public extension OAuthable {
     /// Tries to acquire an app access token.
     /// - Throws: OAuthableError in case of error.
-    func getAppAccessToken(_ req: Request) throws -> EventLoopFuture<AppAccessToken> {
-        let clientRequest = try self.getAppAccessTokenRequest()
-        let clientResponse = req.client.send(clientRequest)
+    func getAppAccessToken(_ req: Request) -> EventLoopFuture<AppAccessToken> {
+        let clientRequest = req.eventLoop.tryFuture {
+            try self.getAppAccessTokenRequest()
+        }
+        let clientResponse = clientRequest.flatMap {
+            req.client.send($0)
+        }
         let tokenContent = clientResponse.flatMap { res in
             decode(response: res, request: req, as: AppAccessToken.self)
         }
@@ -208,8 +212,11 @@ public extension OAuthable {
         _ req: Request,
         state: String? = nil,
         scopes: [Scopes] = Array(Scopes.allCases),
-        extraArg arg: String? = nil)
-    throws -> Response {
+        extraArg arg: String? = nil
+    ) -> Response {
+        req.logger.trace("OAuth2 authorization requested.", metadata: [
+            "type": .string("\(Self.self)")
+        ])
         let state = state ?? String.random(length: 64)
         var authUrl = self.authorizationRedirectUrl(state: state, scopes: scopes)
         if let arg = arg {
@@ -225,25 +232,26 @@ public extension OAuthable {
     /// - Throws: OAuthableError in case of error.
     func authorizationCallback(_ req: Request)
     -> EventLoopFuture<(state: String, token: UserAccessToken)> {
-        
+        req.logger.trace("OAuth2 authorization callback called.", metadata: [
+            "type": .string("\(Self.self)")
+        ])
         typealias QueryParams = AuthorizationQueryParameters
-        func err<T>(_ error: Error) -> EventLoopFuture<T> {
+        func error<T>(_ error: OAuthableError) -> EventLoopFuture<T> {
             req.eventLoop.future(error: error)
         }
         
         guard let params = try? req.query.decode(QueryParams.self) else {
-            if let error = try? req.query.get(String.self, at: "error"),
-               let oauthError = OAuthableError.ProviderError(rawValue: error) {
-                return err(OAuthableError.providerError(status: .badRequest, error: oauthError))
+            if let err = try? req.query.get(String.self, at: "error"),
+               let oauthError = OAuthableError.ProviderError(rawValue: err) {
+                return error(.providerError(error: oauthError))
             } else {
-                return err(OAuthableError.providerError(
-                            status: .badRequest, error: .unknown(error: req.body.string)))
+                return error(.providerError(error: .unknown(error: req.body.string)))
             }
         }
         
         guard let state = req.session.data["state"],
               params.state == state else {
-            return err(OAuthableError.serverError(status: .badRequest, error: .invalidCookie))
+            return error(.serverError(error: .invalidCookie))
         }
         req.session.destroy()
         
