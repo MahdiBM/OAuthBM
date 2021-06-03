@@ -3,7 +3,7 @@ import Vapor
 
 /// Represents a type which has all necessary field of a OAuth-2 access token.
 public protocol OAuthTokenRepresentable {
-    //MARK: - Normal OAuth-2 access-token declarations
+    //MARK: Normal OAuth-2 access-token declarations
     var accessToken: String { get set }
     var refreshToken: String { get set }
     var expiresIn: Int { get set }

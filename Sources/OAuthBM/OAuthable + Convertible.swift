@@ -1,8 +1,6 @@
-
-// OAuthable + OAuthTokenConvertible
 import Vapor
 
-//MARK: - Public Funcs
+// OAuthable + OAuthTokenConvertible
 
 public extension OAuthable where Self: OAuthTokenConvertible {
 

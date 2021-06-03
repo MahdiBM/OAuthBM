@@ -8,7 +8,6 @@ import Vapor
 ///     static let twitch = Issuer(rawValue: "twitch")
 /// }
 /// ```
-///
 public struct Issuer: RawRepresentable {
     private(set) public var rawValue: String
     
