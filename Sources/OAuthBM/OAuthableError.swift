@@ -13,9 +13,9 @@ public enum OAuthableError: AbortError {
     public var reason: String {
         switch self {
         case let .providerError(_, error):
-            return "Provider failed with error: \(error.description)."
+            return "Provider failed with error: \(error.description)"
         case let .serverError(_, error):
-            return "Servers failed with error: \(error.description)."
+            return "Servers failed with error: \(error.description)"
         }
     }
     

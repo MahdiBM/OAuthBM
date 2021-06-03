@@ -4,24 +4,30 @@ import Fluent
 /// Enables OAuth-2 tasks.
 public protocol OAuthable {
     
+    /// The State container type.
+    typealias State = StateContainer<CallbackUrls>
+    
     /// Convenience typealias for the type representing
     /// the policy to encode query parameters with.
     typealias Policy = QueryParametersPolicy
     
     /// Scopes that the app can get permissions to access.
+    ///
     /// An enum conforming to `String` and `CaseIterable` is the best way.
     associatedtype Scopes: CaseIterable & RawRepresentable
     where Scopes.RawValue == String
+    
+    /// Your callback urls.
+    /// 
+    /// All must be registered the callback urls in your provider's panel.
+    associatedtype CallbackUrls: RawRepresentable
+    where CallbackUrls.RawValue == String
     
     /// Your client id, acquired after registering your app in your provider's panel.
     var clientId: String { get }
     
     /// Your client secret, acquired after registering your app in your provider's panel.
     var clientSecret: String { get }
-    
-    /// Your callback url.
-    /// Must be registered as one of the callback urls in your provider's panel.
-    var callbackUrl: String { get }
     
     /// Provider's endpoint that you redirect users to,
     /// so they are asked to give permissions to this app.
@@ -54,15 +60,15 @@ internal extension OAuthable {
     ///
     /// - Throws: OAuthableError in case of error.
     func authorizationRedirectUrl(
-        state: String = .random(length: 64),
+        state: State,
         scopes: [Scopes] = Array(Scopes.allCases)
     ) -> String {
         let queryParams = QueryParameters.init(
             client_id: self.clientId,
             response_type: "code",
-            redirect_uri: self.callbackUrl,
+            redirect_uri: state.callbackUrl.rawValue,
             scope: scopes.map(\.rawValue).joined(separator: " "),
-            state: state)
+            state: state.description)
         let redirectUrl = self.providerAuthorizationUrl + "?" + queryParams.queryString
         return redirectUrl
     }
@@ -73,15 +79,15 @@ internal extension OAuthable {
     ///
     /// - Throws: OAuthableError in case of error.
     func implicitAuthorizationRedirectUrl(
-        state: String = .random(length: 64),
+        state: State,
         scopes: [Scopes] = Array(Scopes.allCases)
     ) -> String {
         let queryParams = QueryParameters.init(
             client_id: self.clientId,
             response_type: "token",
-            redirect_uri: self.callbackUrl,
+            redirect_uri: state.callbackUrl.rawValue,
             scope: scopes.map(\.rawValue).joined(separator: " "),
-            state: state)
+            state: state.description)
         let redirectUrl = self.providerAuthorizationUrl + "?" + queryParams.queryString
         return redirectUrl
     }
@@ -93,11 +99,12 @@ internal extension OAuthable {
     /// This is part of the `OAuth authorization code flow`
     ///
     /// - Throws: OAuthableError in case of error.
-    func userAccessTokenRequest(code: String) throws -> ClientRequest {
+    func userAccessTokenRequest(callbackUrl: CallbackUrls, code: String)
+    throws -> ClientRequest {
         let queryParams = QueryParameters.init(
             client_id: self.clientId,
             client_secret: self.clientSecret,
-            redirect_uri: self.callbackUrl,
+            redirect_uri: callbackUrl.rawValue,
             grant_type: "authorization_code",
             code: code)
         var clientRequest = ClientRequest()
@@ -219,19 +226,18 @@ public extension OAuthable {
     /// This is part of the `OAuth authorization code flow`
     func requestAuthorization(
         _ req: Request,
-        state: String? = nil,
+        state: State,
         scopes: [Scopes] = Array(Scopes.allCases),
         extraArg arg: String? = nil
     ) -> Response {
         req.logger.trace("OAuth2 authorization requested.", metadata: [
             "type": .string("\(Self.self)")
         ])
-        let state = state ?? String.random(length: 64)
         var authUrl = self.authorizationRedirectUrl(state: state, scopes: scopes)
         if let arg = arg {
             authUrl = authUrl + "&" + arg
         }
-        req.session.data["state"] = state
+        req.session.data["state"] = state.description
         return req.redirect(to: authUrl)
     }
     
@@ -240,19 +246,18 @@ public extension OAuthable {
     /// This is part of the `OAuth implicit code flow`
     func requestImplicitAuthorization(
         _ req: Request,
-        state: String? = nil,
+        state: State,
         scopes: [Scopes] = Array(Scopes.allCases),
         extraArg arg: String? = nil
     ) -> Response {
         req.logger.trace("OAuth2 implicit authorization requested.", metadata: [
             "type": .string("\(Self.self)")
         ])
-        let state = state ?? String.random(length: 64)
-        var authUrl = self.implicitAuthorizationRedirectUrl(scopes: scopes)
+        var authUrl = self.implicitAuthorizationRedirectUrl(state: state, scopes: scopes)
         if let arg = arg {
             authUrl = authUrl + "&" + arg
         }
-        req.session.data["state"] = state
+        req.session.data["state"] = state.description
         return req.redirect(to: authUrl)
     }
     
@@ -265,7 +270,7 @@ public extension OAuthable {
     ///
     /// - Throws: OAuthableError in case of error.
     func authorizationCallback(_ req: Request)
-    -> EventLoopFuture<(state: String, token: UserAccessToken)> {
+    -> EventLoopFuture<(state: State, token: UserAccessToken)> {
         req.logger.trace("OAuth2 authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
@@ -283,14 +288,15 @@ public extension OAuthable {
             }
         }
         
-        guard let state = req.session.data["state"],
-              params.state == state else {
+        guard let stateDescription = req.session.data["state"],
+              params.state == stateDescription,
+              let state = State(decodeFrom: stateDescription) else {
             return error(.serverError(error: .invalidCookie))
         }
         req.session.destroy()
         
         let clientRequest = req.eventLoop.future().flatMapThrowing {
-            try self.userAccessTokenRequest(code: params.code)
+            try self.userAccessTokenRequest(callbackUrl: state.callbackUrl, code: params.code)
         }
         let clientResponse = clientRequest.flatMap { req.client.send($0) }
         let accessTokenContent = clientResponse.flatMap {
@@ -298,6 +304,39 @@ public extension OAuthable {
         }
         
         return accessTokenContent.map({ (state: state, token: $0) })
+    }
+    
+    /// Takes care of callback endpoint's actions.
+    ///
+    /// This func is used after the user gets
+    /// redirected back to this app by the provider.
+    ///
+    /// This is part of the `OAuth implicit code flow`
+    ///
+    /// - Throws: OAuthableError in case of error.
+    func implicitAuthorizationCallback(_ req: Request) -> EventLoopFuture<State> {
+        req.logger.trace("OAuth2 implicit authorization callback called.", metadata: [
+            "type": .string("\(Self.self)")
+        ])
+        func error<T>(_ error: OAuthableError) -> EventLoopFuture<T> {
+            req.eventLoop.future(error: error)
+        }
+        
+        if let err = try? req.query.get(String.self, at: "error") {
+            if let oauthError = OAuthableError.ProviderError(rawValue: err) {
+                return error(.providerError(error: oauthError))
+            } else {
+                return error(.providerError(error: .unknown(error: err)))
+            }
+        }
+        
+        guard let stateDescription = req.session.data["state"],
+              let state = State(decodeFrom: stateDescription) else {
+            return error(.serverError(error: .invalidCookie))
+        }
+        req.session.destroy()
+        
+        return req.eventLoop.future(state)
     }
 }
 

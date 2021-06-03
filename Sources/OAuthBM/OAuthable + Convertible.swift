@@ -12,7 +12,7 @@ public extension OAuthable where Self: OAuthTokenConvertible {
     ///
     /// - Throws: OAuthableError in case of error.
     func authorizationCallback(_ req: Request)
-    -> EventLoopFuture<(state: String, token: Tokens)> {
+    -> EventLoopFuture<(state: State, token: Tokens)> {
         req.logger.trace("OAuth2 authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
@@ -21,7 +21,7 @@ public extension OAuthable where Self: OAuthTokenConvertible {
             let oauthToken = accessToken.convertToOAuthToken(
                 req: req, issuer: self.issuer, as: Tokens.self)
             return oauthToken.flatMap { token in
-                token.save(on: req.db).transform(to: (state, token))
+                token.save(on: req.db).transform(to: (state as! State, token))
             }
         }
     }

@@ -1,18 +1,22 @@
 @testable import OAuthBM
 
-struct TestProvider: OAuthable {
+struct TestProvider: OAuthable, OAuthTokenConvertible {
+    
+    typealias Tokens = OAuthTokens
     
     let clientId = "clientId"
     
     let clientSecret = "clientSecret"
-    
-    let callbackUrl = "http://host:port/address"
     
     let providerAuthorizationUrl = "https://id.twitch.tv/oauth2/authorize"
     
     let providerTokenUrl = "https://id.twitch.tv/oauth2/token"
     
     let issuer: Issuer = .twitch
+    
+    enum CallbackUrls: String {
+        case normal = "http://host:port/address"
+    }
     
     enum Scopes: String, CaseIterable {
         case analyticsReadExtensions = "analytics:read:extensions"
