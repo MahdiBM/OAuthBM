@@ -237,7 +237,7 @@ public extension OAuthable {
         if let arg = arg {
             authUrl = authUrl + "&" + arg
         }
-        req.session.data["state"] = state.description
+        req.session.data["OAuthBM_state"] = state.description
         return req.redirect(to: authUrl)
     }
     
@@ -257,7 +257,7 @@ public extension OAuthable {
         if let arg = arg {
             authUrl = authUrl + "&" + arg
         }
-        req.session.data["state"] = state.description
+        req.session.data["OAuthBM_state"] = state.description
         return req.redirect(to: authUrl)
     }
     
@@ -288,7 +288,7 @@ public extension OAuthable {
             }
         }
         
-        guard let stateDescription = req.session.data["state"],
+        guard let stateDescription = req.session.data["OAuthBM_state"],
               params.state == stateDescription,
               let state = State(decodeFrom: stateDescription) else {
             return error(.serverError(error: .invalidCookie))
@@ -330,7 +330,7 @@ public extension OAuthable {
             }
         }
         
-        guard let stateDescription = req.session.data["state"],
+        guard let stateDescription = req.session.data["OAuthBM_state"],
               let state = State(decodeFrom: stateDescription) else {
             return error(.serverError(error: .invalidCookie))
         }
