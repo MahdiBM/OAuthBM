@@ -2,7 +2,7 @@ import Vapor
 
 /// The issuer of an oauth token.
 ///
-/// You should extend `Issuer` and add a static member for your issuer:
+/// You should extend `Issuer` and add a static member for your issuer, example:
 /// ```swift
 /// extension Issuer {
 ///     static let twitch = Issuer(rawValue: "twitch")

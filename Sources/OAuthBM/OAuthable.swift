@@ -3,6 +3,7 @@ import Fluent
 
 /// Enables OAuth-2 tasks.
 public protocol OAuthable {
+    
     /// Convenience typealias for the type representing
     /// the policy to encode query parameters with.
     typealias Policy = QueryParametersPolicy
@@ -48,6 +49,9 @@ internal extension OAuthable {
     
     /// The url to redirect user to,
     /// so they are asked to give this app permissions to access their data.
+    ///
+    /// This is part of the `OAuth authorization code flow`
+    ///
     /// - Throws: OAuthableError in case of error.
     func authorizationRedirectUrl(
         state: String = .random(length: 64),
@@ -63,11 +67,29 @@ internal extension OAuthable {
         return redirectUrl
     }
     
+    /// The request that gets an access token from the provider.
+    ///
+    /// This is part of the `OAuth implicit code flow`
+    ///
+    /// - Throws: OAuthableError in case of error.
+    func implicitAuthorizationRedirectUrl(scopes: [Scopes] = Array(Scopes.allCases)) -> String {
+        let queryParams = QueryParameters.init(
+            client_id: self.clientId,
+            response_type: "token",
+            redirect_uri: self.callbackUrl,
+            scope: scopes.map(\.rawValue).joined(separator: " "))
+        let redirectUrl = self.providerAuthorizationUrl + "?" + queryParams.queryString
+        return redirectUrl
+    }
+    
     /// The request that gets an access token from the provider,
     /// using the `code` that this app should acquired after
     /// user being redirected to this app by the provider.
+    ///
+    /// This is part of the `OAuth authorization code flow`
+    ///
     /// - Throws: OAuthableError in case of error.
-    func getUserAccessTokenRequest(code: String) throws -> ClientRequest {
+    func userAccessTokenRequest(code: String) throws -> ClientRequest {
         let queryParams = QueryParameters.init(
             client_id: self.clientId,
             client_secret: self.clientSecret,
@@ -91,6 +113,9 @@ internal extension OAuthable {
     }
     
     /// The request to refresh an expired token with.
+    ///
+    /// This is part of the `OAuth authorization code flow`
+    ///
     /// - Throws: OAuthableError in case of error.
     func refreshTokenRequest(refreshToken: String) throws -> ClientRequest {
         let queryParams = QueryParameters.init(
@@ -115,8 +140,11 @@ internal extension OAuthable {
     }
     
     /// The request to acquire an app access token.
+    ///
+    /// This is part of the `OAuth client credentials flow`
+    ///
     /// - Throws: OAuthableError in case of error.
-    func getAppAccessTokenRequest() throws -> ClientRequest {
+    func appAccessTokenRequest() throws -> ClientRequest {
         let queryParams = QueryParameters.init(
             client_id: self.clientId,
             client_secret: self.clientSecret,
@@ -138,6 +166,9 @@ internal extension OAuthable {
     }
     
     /// Immediately tries to refresh the token.
+    ///
+    /// This is part of the `OAuth authorization code flow`
+    ///
     /// - Throws: OAuthableError in case of error.
     /// - Returns: A fresh token.
     func renewToken(_ req: Request, refreshToken: String) -> EventLoopFuture<UserRefreshToken> {
@@ -152,50 +183,19 @@ internal extension OAuthable {
         }
         return refreshTokenContent
     }
-    
-    /// Decodes response's content while taking care of errors.
-    ///   - type: Type to decode the content to.
-    /// - Throws: OAuthableError in case of error.
-    /// - Returns: The decoded content.
-    func decode<T>(response res: ClientResponse, request req: Request, as type: T.Type)
-    -> EventLoopFuture<T> where T: Content {
-        return req.eventLoop.tryFuture {
-            if res.status.code < 300, res.status.code >= 200 {
-                do {
-                    return try res.content.decode(T.self)
-                } catch {
-                    throw OAuthableError.serverError(
-                        status: .badRequest, error: .unknown(error: "\(error)"))
-                }
-            } else {
-                if let error = try? req.query.get(String.self, at: "error"),
-                   let authError = OAuthableError.ProviderError(rawValue: error) {
-                    throw OAuthableError.providerError(status: res.status, error: authError)
-                } else if let error = try? res.content.decode(ErrorResponse.self) {
-                    if error.message == "Invalid refresh token" {
-                        throw OAuthableError.providerError(status: res.status, error: .invalidToken)
-                    } else {
-                        throw OAuthableError.providerError(
-                            status: res.status, error: .unknown(error: error.message))
-                    }
-                } else {
-                    throw OAuthableError.providerError(
-                        status: res.status,
-                        error: .unknown(error: res.body?.contentString))
-                }
-            }
-        }
-    }
 }
 
 //MARK: - Public Declarations
 
 public extension OAuthable {
     /// Tries to acquire an app access token.
+    ///
+    /// This is part of the `OAuth client credentials flow`
+    ///
     /// - Throws: OAuthableError in case of error.
     func getAppAccessToken(_ req: Request) -> EventLoopFuture<AppAccessToken> {
         let clientRequest = req.eventLoop.tryFuture {
-            try self.getAppAccessTokenRequest()
+            try self.appAccessTokenRequest()
         }
         let clientResponse = clientRequest.flatMap {
             req.client.send($0)
@@ -208,6 +208,11 @@ public extension OAuthable {
     }
     
     /// Redirects user to the provider page where they're asked to give this app permissions.
+    ///
+    /// After successful completion, they are redirected to the `self.callbackUrl` and we'll
+    /// acquire an access-token using the `code` parameter that will be passed to us.
+    ///
+    /// This is part of the `OAuth authorization code flow`
     func requestAuthorization(
         _ req: Request,
         state: String? = nil,
@@ -226,9 +231,31 @@ public extension OAuthable {
         return req.redirect(to: authUrl)
     }
     
-    /// Takes care of callback endpoint's actions,
-    /// after the user hits the authorization endpoint
-    /// and gets redirected back to this app by the provider.
+    /// Redirects user to the provider page where they're asked to give this app permissions.
+    ///
+    /// This is part of the `OAuth implicit code flow`
+    func requestImplicitAuthorization(
+        _ req: Request,
+        scopes: [Scopes] = Array(Scopes.allCases),
+        extraArg arg: String? = nil
+    ) -> Response {
+        req.logger.trace("OAuth2 implicit authorization requested.", metadata: [
+            "type": .string("\(Self.self)")
+        ])
+        var authUrl = self.implicitAuthorizationRedirectUrl(scopes: scopes)
+        if let arg = arg {
+            authUrl = authUrl + "&" + arg
+        }
+        return req.redirect(to: authUrl)
+    }
+    
+    /// Takes care of callback endpoint's actions.
+    ///
+    /// This func is used after the user gets
+    /// redirected back to this app by the provider.
+    ///
+    /// This is part of the `OAuth authorization code flow`
+    ///
     /// - Throws: OAuthableError in case of error.
     func authorizationCallback(_ req: Request)
     -> EventLoopFuture<(state: String, token: UserAccessToken)> {
@@ -256,7 +283,7 @@ public extension OAuthable {
         req.session.destroy()
         
         let clientRequest = req.eventLoop.future().flatMapThrowing {
-            try self.getUserAccessTokenRequest(code: params.code)
+            try self.userAccessTokenRequest(code: params.code)
         }
         let clientResponse = clientRequest.flatMap { req.client.send($0) }
         let accessTokenContent = clientResponse.flatMap {
@@ -267,7 +294,40 @@ public extension OAuthable {
     }
 }
 
-//MARK: - Error Response
+//MARK: - Decoder func
+
+/// Decodes response's content while taking care of errors.
+/// - Throws: OAuthableError in case of error.
+private func decode<T>(response res: ClientResponse, request req: Request, as type: T.Type)
+-> EventLoopFuture<T> where T: Content {
+    req.eventLoop.tryFuture {
+        if res.status.code < 300, res.status.code >= 200 {
+            do {
+                return try res.content.decode(T.self)
+            } catch {
+                throw OAuthableError.serverError(
+                    status: .badRequest, error: .unknown(error: "\(error)"))
+            }
+        } else {
+            if let error = try? req.query.get(String.self, at: "error"),
+               let authError = OAuthableError.ProviderError(rawValue: error) {
+                throw OAuthableError.providerError(status: res.status, error: authError)
+            } else if let error = try? res.content.decode(ErrorResponse.self) {
+                if error.message == "Invalid refresh token" {
+                    throw OAuthableError.providerError(status: res.status, error: .invalidToken)
+                } else {
+                    throw OAuthableError.providerError(
+                        status: res.status, error: .unknown(error: error.message))
+                }
+            } else {
+                throw OAuthableError.providerError(
+                    status: res.status,
+                    error: .unknown(error: res.body?.contentString))
+            }
+        }
+    }
+}
+
 private struct ErrorResponse: Decodable {
     let message: String
     let status: Int

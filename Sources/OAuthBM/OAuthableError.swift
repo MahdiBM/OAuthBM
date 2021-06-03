@@ -2,8 +2,10 @@ import Vapor
 
 /// Errors that can be thrown by OAuthable's declarations.
 public enum OAuthableError: AbortError {
+    
     /// Errors thrown by the provider.
     case providerError(status: HTTPStatus = .badRequest, error: ProviderError)
+    
     /// Errors thrown by the server.
     case serverError(status: HTTPStatus = .badRequest, error: ServerError)
     
@@ -33,6 +35,8 @@ extension OAuthableError: Equatable {
     }
 }
 
+//MARK: - ServerError
+
 extension OAuthableError {
     public enum ServerError: Equatable {
         case invalidCookie
@@ -54,6 +58,8 @@ extension OAuthableError {
         
     }
 }
+
+//MARK: - ProviderError
 
 extension OAuthableError {
     public enum ProviderError: Equatable {

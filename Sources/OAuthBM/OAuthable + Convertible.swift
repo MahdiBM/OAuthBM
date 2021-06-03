@@ -7,6 +7,9 @@ public extension OAuthable where Self: OAuthTokenConvertible {
     /// Takes care of callback endpoint's actions,
     /// after the user hits the authorization endpoint
     /// and gets redirected back to this app by the provider.
+    ///
+    /// This is part of the `OAuth authorization code flow`
+    ///
     /// - Throws: OAuthableError in case of error.
     func authorizationCallback(_ req: Request)
     -> EventLoopFuture<(state: String, token: Tokens)> {
@@ -24,6 +27,9 @@ public extension OAuthable where Self: OAuthTokenConvertible {
     }
     
     /// Immediately tries to refresh the token.
+    ///
+    /// This is part of the `OAuth authorization code flow`
+    ///
     /// - Throws: OAuthableError in case of error.
     /// - Returns: A fresh token.
     func renewToken(_ req: Request, token: Tokens) -> EventLoopFuture<Tokens> {
@@ -58,9 +64,11 @@ public extension OAuthable where Self: OAuthTokenConvertible {
         return deleteOldToken.map { $0 }
     }
     
-    /// Checks if the current token is expired,
-    /// tries to acquire a fresh token in case of expiration,
-    /// returns the same token if it has not expired.
+    /// Renew's the token if needed.
+    ///
+    /// This is part of the `OAuth authorization code flow`
+    ///
+    /// - Returns: The same token of not expired, otherwise a fresh token.
     func renewTokenIfExpired(_ req: Request, token: Tokens) -> EventLoopFuture<Tokens> {
         if token.hasExpired {
             req.logger.trace("Token has expired. Will try to acquire new one.", metadata: [
