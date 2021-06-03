@@ -72,12 +72,16 @@ internal extension OAuthable {
     /// This is part of the `OAuth implicit code flow`
     ///
     /// - Throws: OAuthableError in case of error.
-    func implicitAuthorizationRedirectUrl(scopes: [Scopes] = Array(Scopes.allCases)) -> String {
+    func implicitAuthorizationRedirectUrl(
+        state: String = .random(length: 64),
+        scopes: [Scopes] = Array(Scopes.allCases)
+    ) -> String {
         let queryParams = QueryParameters.init(
             client_id: self.clientId,
             response_type: "token",
             redirect_uri: self.callbackUrl,
-            scope: scopes.map(\.rawValue).joined(separator: " "))
+            scope: scopes.map(\.rawValue).joined(separator: " "),
+            state: state)
         let redirectUrl = self.providerAuthorizationUrl + "?" + queryParams.queryString
         return redirectUrl
     }
@@ -236,16 +240,19 @@ public extension OAuthable {
     /// This is part of the `OAuth implicit code flow`
     func requestImplicitAuthorization(
         _ req: Request,
+        state: String? = nil,
         scopes: [Scopes] = Array(Scopes.allCases),
         extraArg arg: String? = nil
     ) -> Response {
         req.logger.trace("OAuth2 implicit authorization requested.", metadata: [
             "type": .string("\(Self.self)")
         ])
+        let state = state ?? String.random(length: 64)
         var authUrl = self.implicitAuthorizationRedirectUrl(scopes: scopes)
         if let arg = arg {
             authUrl = authUrl + "&" + arg
         }
+        req.session.data["state"] = state
         return req.redirect(to: authUrl)
     }
     
