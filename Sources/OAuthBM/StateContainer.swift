@@ -24,10 +24,12 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
         self.randomValue = .random(length: 64)
     }
     
-    internal init? (decodeFrom description: String)  {
+    internal init (decodeFrom description: String) throws {
         let comps = description.components(separatedBy: "@#$%")
-        guard comps.count == 3, let callbackUrl = CallbackUrls(rawValue: comps[1])
-        else { return nil }
+        guard comps.count == 3, let callbackUrl = CallbackUrls(rawValue: comps[1]) else {
+            throw OAuthableError.serverError(
+                status: .badRequest, error: .stateDecode(state: description))
+        }
         self.customValue = comps[0]
         self.callbackUrl = callbackUrl
         self.randomValue = comps[2]

@@ -40,6 +40,7 @@ extension OAuthableError: Equatable {
 extension OAuthableError {
     public enum ServerError: Equatable {
         case invalidCookie
+        case stateDecode(state: String)
         case queryParametersEncode(policy: QueryParametersPolicy)
         case unknown(error: String?)
         
@@ -49,6 +50,8 @@ extension OAuthableError {
                 return "Could not approve the legitimacy of your request. Please use a web"
                     + " browser that allows cookies (e.g. Google Chrome, Firefox, Microsoft Edge)"
                     + " , or enable cookies for this website."
+            case .stateDecode(let state):
+                return "Could not decode state \(state.debugDescription)."
             case .queryParametersEncode(let policy):
                 return "Failed to encode query parameters into"
                     + " the request using policy `\(policy.rawValue)`."

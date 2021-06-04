@@ -289,11 +289,16 @@ public extension OAuthable {
         }
         
         guard let stateDescription = req.session.data["OAuthBM_state"],
-              params.state == stateDescription,
-              let state = State(decodeFrom: stateDescription) else {
+              params.state == stateDescription else {
             return error(.serverError(error: .invalidCookie))
         }
         req.session.destroy()
+        let state: State
+        do {
+            state = try State(decodeFrom: stateDescription)
+        } catch let error {
+            return req.eventLoop.future(error: error)
+        }
         
         let clientRequest = req.eventLoop.future().flatMapThrowing {
             try self.userAccessTokenRequest(callbackUrl: state.callbackUrl, code: params.code)
@@ -330,11 +335,17 @@ public extension OAuthable {
             }
         }
         
-        guard let stateDescription = req.session.data["OAuthBM_state"],
-              let state = State(decodeFrom: stateDescription) else {
+        guard let stateDescription = req.session.data["OAuthBM_state"] else {
             return error(.serverError(error: .invalidCookie))
         }
         req.session.destroy()
+        
+        let state: State
+        do {
+            state = try State(decodeFrom: stateDescription)
+        } catch let error {
+            return req.eventLoop.future(error: error)
+        }
         
         return req.eventLoop.future(state)
     }
