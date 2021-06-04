@@ -12,13 +12,13 @@ public protocol OAuthTokenRepresentative {
     var issuer: Issuer { get set }
     var createdAt: Date? { get }
     
-    /// Initializer for a token.
+    /// Initializer for a token. You should also save the token into the db.
     ///
     /// A `Request`, a `RetrievedToken` and the oldToken (if available) are passed
     /// to this func and in return, a new token is expected to be returned.
     /// Using this instead of a normal `init` is only because this is much more
     /// dynamic and much less restrictive.
-    static func initialize(request: Request, token: RetrievedToken, oldToken: Self?)
+    static func initializeAndSave(request: Request, token: RetrievedToken, oldToken: Self?)
     throws -> EventLoopFuture<Self>
 }
 

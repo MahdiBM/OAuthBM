@@ -29,7 +29,7 @@ final class OAuthTokens: Model, Content, OAuthTokenRepresentative {
     @Timestamp(key: .init(FieldKeys.createdAt), on: .create)
     var createdAt: Date?
     
-    static func initialize(request: Request, token: RetrievedToken, oldToken _: OAuthTokens?)
+    static func initializeAndSave(request: Request, token: RetrievedToken, oldToken _: OAuthTokens?)
     throws -> EventLoopFuture<OAuthTokens> {
         request.eventLoop.tryFuture {
             .init(

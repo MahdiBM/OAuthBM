@@ -83,8 +83,8 @@ extension UserAccessToken {
             refreshToken: self.refreshToken,
             issuer: issuer)
         return req.eventLoop.future().tryFlatMap {
-            try Token.initialize(request: req, token: token, oldToken: nil)
-        }.flatMap({ $0.save(on: req.db).transform(to: $0) })
+            try Token.initializeAndSave(request: req, token: token, oldToken: nil)
+        }
     }
 }
 
@@ -144,8 +144,8 @@ extension UserRefreshToken {
             refreshToken: oldToken.refreshToken,
             issuer: oldToken.issuer)
         return req.eventLoop.future().tryFlatMap {
-            try Token.initialize(request: req, token: token, oldToken: oldToken)
-        }.flatMap({ $0.save(on: req.db).transform(to: $0) })
+            try Token.initializeAndSave(request: req, token: token, oldToken: oldToken)
+        }
     }
 }
 
