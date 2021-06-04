@@ -2,7 +2,7 @@ import Vapor
 import Fluent
 @testable import OAuthBM
 
-final class OAuthTokens: Model, Content, OAuthTokenRepresentable {
+final class OAuthTokens: Model, Content, OAuthTokenRepresentative {
     
     static let schema = "oauthToken"
     

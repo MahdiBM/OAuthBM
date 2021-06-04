@@ -1,7 +1,7 @@
 import Vapor
 import Fluent
 
-/// Protocol to enable a type to be made an OAuth-2 token with.
+/// Enables a type to be used to make an OAuth-2 token with.
 public protocol OAuthTokenConvertible {
-    associatedtype Tokens: OAuthTokenRepresentable, Model, Content
+    associatedtype Tokens: OAuthTokenRepresentative, Model, Content
 }

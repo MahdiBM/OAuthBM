@@ -71,7 +71,7 @@ extension UserAccessToken: Content {
 extension UserAccessToken {
     /// Converts `self` to an `OAuthTokens`.
     func convertToOAuthToken<Token>(req: Request, issuer: Issuer, as type: Token.Type)
-    -> EventLoopFuture<Token> where Token: OAuthTokenRepresentable {
+    -> EventLoopFuture<Token> where Token: OAuthTokenRepresentative {
         let scopesFromScope = self.scope?.components(separatedBy: " ")
         let scopes = self.scopes ?? scopesFromScope ?? []
         let token: RetrievedToken = .init(
@@ -132,7 +132,7 @@ extension UserRefreshToken {
     /// Makes a new token with refreshed info.
     /// - Parameter oldToken: The expired token.
     func makeNewOAuthToken<Token>(req: Request, oldToken: Token)
-    -> EventLoopFuture<Token> where Token: OAuthTokenRepresentable {
+    -> EventLoopFuture<Token> where Token: OAuthTokenRepresentative {
         let scopesFromScope = self.scope?.components(separatedBy: " ")
         let scopes = self.scopes ?? scopesFromScope ?? []
         let token: RetrievedToken = .init(
