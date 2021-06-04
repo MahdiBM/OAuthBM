@@ -31,8 +31,7 @@ final class OAuthTokens: Model, Content, OAuthTokenRepresentative {
     
     static func initializeAndSave(request: Request, token: RetrievedToken, oldToken _: OAuthTokens?)
     throws -> EventLoopFuture<OAuthTokens> {
-        request.eventLoop.tryFuture {
-            .init(
+            let token = OAuthTokens.init(
                 accessToken: token.accessToken,
                 refreshToken: token.refreshToken,
                 expiresIn: token.expiresIn,
@@ -40,7 +39,7 @@ final class OAuthTokens: Model, Content, OAuthTokenRepresentative {
                 tokenType: token.tokenType,
                 issuer: token.issuer
             )
-        }
+        return token.save(on: request.db).transform(to: token)
     }
     
     init() { }
