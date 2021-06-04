@@ -18,11 +18,8 @@ public extension OAuthable where Self: OAuthTokenConvertible {
         ])
         var oauthable: some OAuthable { self }
         return oauthable.authorizationCallback(req).flatMap { state, accessToken in
-            let oauthToken = accessToken.convertToOAuthToken(
-                req: req, issuer: self.issuer, as: Tokens.self)
-            return oauthToken.flatMap { token in
-                token.save(on: req.db).transform(to: (state as! State, token))
-            }
+            accessToken.convertToOAuthToken(req: req, issuer: self.issuer, as: Tokens.self)
+                .map({ (state: state as! State, token: $0) })
         }
     }
     
@@ -54,10 +51,7 @@ public extension OAuthable where Self: OAuthTokenConvertible {
         let newToken = removeTokenIfRevoked.flatMap { refreshToken in
             refreshToken.makeNewOAuthToken(req: req, oldToken: token)
         }
-        let saveNewTokenOnDb = newToken.flatMap { newToken -> EventLoopFuture<Tokens>  in
-            newToken.save(on: req.db).map { _ in newToken }
-        }
-        let deleteOldToken = saveNewTokenOnDb.flatMap { newToken in
+        let deleteOldToken = newToken.flatMap { newToken in
             token.delete(on: req.db).map { _ in newToken }
         }
         

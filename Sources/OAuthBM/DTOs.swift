@@ -1,4 +1,5 @@
 import Vapor
+import Fluent
 
 //MARK: - RetrievedToken
 
@@ -69,9 +70,9 @@ extension UserAccessToken: Content {
 }
 
 extension UserAccessToken {
-    /// Converts `self` to an `OAuthTokens`.
+    /// Converts `self` to an `OAuthTokens` and saves it to db.
     func convertToOAuthToken<Token>(req: Request, issuer: Issuer, as type: Token.Type)
-    -> EventLoopFuture<Token> where Token: OAuthTokenRepresentative {
+    -> EventLoopFuture<Token> where Token: OAuthTokenRepresentative & Model {
         let scopesFromScope = self.scope?.components(separatedBy: " ")
         let scopes = self.scopes ?? scopesFromScope ?? []
         let token: RetrievedToken = .init(
@@ -83,7 +84,7 @@ extension UserAccessToken {
             issuer: issuer)
         return req.eventLoop.future().tryFlatMap {
             try Token.initialize(request: req, token: token, oldToken: nil)
-        }
+        }.flatMap({ $0.save(on: req.db).transform(to: $0) })
     }
 }
 
@@ -129,10 +130,10 @@ extension UserRefreshToken: Content {
 }
 
 extension UserRefreshToken {
-    /// Makes a new token with refreshed info.
+    /// Makes a new token with refreshed info and saves it to db.
     /// - Parameter oldToken: The expired token.
     func makeNewOAuthToken<Token>(req: Request, oldToken: Token)
-    -> EventLoopFuture<Token> where Token: OAuthTokenRepresentative {
+    -> EventLoopFuture<Token> where Token: OAuthTokenRepresentative & Model {
         let scopesFromScope = self.scope?.components(separatedBy: " ")
         let scopes = self.scopes ?? scopesFromScope ?? []
         let token: RetrievedToken = .init(
@@ -144,7 +145,7 @@ extension UserRefreshToken {
             issuer: oldToken.issuer)
         return req.eventLoop.future().tryFlatMap {
             try Token.initialize(request: req, token: token, oldToken: oldToken)
-        }
+        }.flatMap({ $0.save(on: req.db).transform(to: $0) })
     }
 }
 
