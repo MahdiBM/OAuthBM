@@ -6,8 +6,8 @@
 **Here i'll assume you want `OAuthBM` to take of the tokens for you, and you are using the `OAuth authorization code flow`; as those two are the most common.**    
 **`OAuthBM` can also work without fluent and with both `OAuth implicit code flow` and `OAuth client credentials flow`.**
 
-* First make sure you have a table conforming to `OAuthTokenRepresentable`, `Model` and `Content` ready. You can find an example [here in tests](/Tests/OAuthBMTests/Preperation/OAuthTokens%20Table.swift).   
-As described in the documentations around [the `OAuthTokenRepresentable` protocol](/Sources/OAuthBM/OAuthTokenRepresentable.swift), the `initialize(req:token:oldToken:) -> ELF<Self>` func is just an initializer that gives you more flexibility than a normal `init`,
+* First make sure you have a table conforming to `OAuthTokenRepresentative`, `Model` and `Content` ready. You can find an example [here in tests](/Tests/OAuthBMTests/Preperation/OAuthTokens%20Table.swift).   
+As described in the documentations around [the `OAuthTokenRepresentative` protocol](/Sources/OAuthBM/OAuthTokenRepresentative.swift), the `initialize(req:token:oldToken:) -> ELF<Self>` func is just an initializer that gives you more flexibility than a normal `init`,
 Meaning that you can take care of everything that is needed before a token is made, then `init` that token and pass it to `OAuthBM`.     
 You don't need to save the token into the database as `OAuthBM` will do that for you.
 * Make a type conforming to `OAuthable` and `OAuthTokenConvertible`. This type will be where you enter your provider's info.    
