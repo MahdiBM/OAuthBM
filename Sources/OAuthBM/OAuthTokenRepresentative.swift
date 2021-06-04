@@ -18,7 +18,7 @@ public protocol OAuthTokenRepresentative {
     /// to this func and in return, a new token is expected to be returned.
     /// Using this instead of a normal `init` is only because this is much more
     /// dynamic and much less restrictive.
-    static func initialize(req: Request, token: RetrievedToken, oldToken: Self?)
+    static func initialize(request: Request, token: RetrievedToken, oldToken: Self?)
     throws -> EventLoopFuture<Self>
 }
 

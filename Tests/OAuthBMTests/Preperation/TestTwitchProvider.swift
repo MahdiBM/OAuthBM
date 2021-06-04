@@ -2,6 +2,12 @@
 
 struct TestTwitchProvider: OAuthable, OAuthTokenConvertible {
     
+    /// For clarification, this provider won't work in a real app unless
+    /// You replace `clientId`, `clientSecret` and `CallbackUrls` with real values.
+    /// `providerAuthorizationUrl`, `providerTokenUrl` and `Scopes` are
+    /// `Twitch` specific values and if you're using this for any other provider,
+    /// you must enter the correct values for them yourself.
+    
     typealias Tokens = OAuthTokens
     
     let clientId = "clientId"
@@ -15,7 +21,7 @@ struct TestTwitchProvider: OAuthable, OAuthTokenConvertible {
     let issuer: Issuer = .twitch
     
     enum CallbackUrls: String {
-        case normal = "http://host:port/address"
+        case normal = "https://domain.com/address"
     }
     
     enum Scopes: String, CaseIterable {
