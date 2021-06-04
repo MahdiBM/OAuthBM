@@ -15,7 +15,7 @@ public enum OAuthableError: AbortError {
         case let .providerError(_, error):
             return "Provider failed with error: \(error.description)"
         case let .serverError(_, error):
-            return "Servers failed with error: \(error.description)"
+            return "Server failed with error: \(error.description)"
         }
     }
     
