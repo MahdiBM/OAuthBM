@@ -45,6 +45,7 @@ public protocol OAuthable {
 }
 
 //MARK: Default-Value extension
+
 extension OAuthable {
     var queryParametersPolicy: Policy { .default }
 }

@@ -11,7 +11,7 @@ final class OAuthBMTests: XCTestCase {
     
     func testAuthorizationCodeFlowRoutes() {
         
-        let provider = TestProvider()
+        let provider = TestTwitchProvider()
         
         /// An endpoint that your users will open when they want to register.
         app.get("oauth", "register") { req in

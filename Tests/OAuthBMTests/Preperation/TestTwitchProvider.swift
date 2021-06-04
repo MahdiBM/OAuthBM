@@ -1,6 +1,6 @@
 @testable import OAuthBM
 
-struct TestProvider: OAuthable, OAuthTokenConvertible {
+struct TestTwitchProvider: OAuthable, OAuthTokenConvertible {
     
     typealias Tokens = OAuthTokens
     
