@@ -18,7 +18,7 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
         [customValue, callbackUrl.rawValue, randomValue].joined(separator: separator)
     }
     
-    init(customValue: String = "", callbackUrl: CallbackUrls) {
+    public init(customValue: String = "", callbackUrl: CallbackUrls) {
         self.customValue = customValue
         self.callbackUrl = callbackUrl
         self.randomValue = .random(length: 64)
