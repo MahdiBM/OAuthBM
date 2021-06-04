@@ -7,9 +7,10 @@
 **`OAuthBM` can also work without fluent and with both `OAuth implicit code flow` and `OAuth client credentials flow`.**
 
 * First make sure you have a table conforming to `OAuthTokenRepresentable`, `Model` and `Content` ready. You can find an example [here in tests](/Tests/OAuthBMTests/Preperation/OAuthTokens%20Table.swift).   
-As described in the documentations around the `OAuthTokenRepresentable`, the `initialize(req:token:oldToken:)` is just an initializer that gives you more flexibility than a normal `init`,
-Meaning that you can take care of everything that is needed before a token is made, then `init` that token and pass it to `OAuthBM`.
-* Make a type conforming to `OAuthable` and `OAuthTokenConvetible`. This type will be where you enter your provider's info.    
+As described in the documentations around [the `OAuthTokenRepresentable` protocol](/Sources/OAuthBM/OAuthTokenRepresentable.swift), the `initialize(req:token:oldToken:) -> ELF<Self>` func is just an initializer that gives you more flexibility than a normal `init`,
+Meaning that you can take care of everything that is needed before a token is made, then `init` that token and pass it to `OAuthBM`.     
+You don't need to save the token into the database as `OAuthBM` will do that for you.
+* Make a type conforming to `OAuthable` and `OAuthTokenConvertible`. This type will be where you enter your provider's info.    
 Read [OAuthable's comments](/Sources/OAuthBM/OAuthable.swift) and take a look at [this example from tests](/Tests/OAuthBMTests/Preperation/TestProvider.swift) to have a feeling about what you should be doing.
 
 ### Step 3: Setup your routes
