@@ -11,7 +11,7 @@ public struct RetrievedToken {
     public var tokenType: String
     public var scopes: [String]
     public var expiresIn: Int
-    public var refreshToken: String?
+    public var refreshToken: String
     public var issuer: Issuer
 }
 

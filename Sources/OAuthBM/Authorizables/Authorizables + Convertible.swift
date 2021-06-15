@@ -96,7 +96,7 @@ public extension ClientFlowAuthorizable where Self: OAuthTokenConvertible {
                 tokenType: token.tokenType,
                 scopes: Self.Scopes.allCases.map({ $0.rawValue }),
                 expiresIn: token.expiresIn,
-                refreshToken: nil,
+                refreshToken: "",
                 issuer: self.issuer
             )
         }
