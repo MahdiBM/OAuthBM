@@ -4,7 +4,7 @@
 //
 //// Fro documentation, read ``OAuthTokenRepresentative``'s documentations.
 //
-//final class OAuthTokens: Model, Content, OAuthTokenRepresentative {
+//final class OAuthToken: Model, Content, OAuthTokenRepresentative {
 //    
 //    static let schema = "oauthToken"
 //    
@@ -31,9 +31,9 @@
 //    @Timestamp(key: .init(FieldKeys.createdAt), on: .create)
 //    var createdAt: Date?
 //    
-//    static func initializeAndSave(request: Request, token: RetrievedToken, oldToken _: OAuthTokens?)
-//    throws -> EventLoopFuture<OAuthTokens> {
-//            let token = OAuthTokens.init(
+//    static func initializeAndSave(request: Request, token: RetrievedToken, oldToken _: OAuthToken?)
+//    throws -> EventLoopFuture<OAuthToken> {
+//            let token = OAuthToken.init(
 //                accessToken: token.accessToken,
 //                refreshToken: token.refreshToken,
 //                expiresIn: token.expiresIn,
@@ -67,7 +67,7 @@
 //
 ////MARK: - FieldKeys
 //
-//extension OAuthTokens {
+//extension OAuthToken {
 //    enum FieldKeys: String {
 //        case accessToken
 //        case refreshToken
@@ -81,10 +81,10 @@
 //
 ////MARK: - Migrations
 //
-//extension OAuthTokens {
+//extension OAuthToken {
 //    struct Create: Migration {
 //        func prepare(on database: Database) -> EventLoopFuture<Void> {
-//            database.schema(OAuthTokens.schema)
+//            database.schema(OAuthToken.schema)
 //                .id()
 //                .field(.init(FieldKeys.accessToken), .string)
 //                .field(.init(FieldKeys.refreshToken), .string)
@@ -97,7 +97,7 @@
 //        }
 //        
 //        func revert(on database: Database) -> EventLoopFuture<Void> {
-//            database.schema(OAuthTokens.schema)
+//            database.schema(OAuthToken.schema)
 //                .delete()
 //        }
 //    }

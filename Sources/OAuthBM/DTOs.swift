@@ -13,6 +13,12 @@ public struct RetrievedToken {
     public var expiresIn: Int
     public var refreshToken: String
     public var issuer: Issuer
+    public var flow: Flow
+    
+    public enum Flow: String, Content {
+        case authorizationCodeFlow
+        case clientCredentialsFlow
+    }
 }
 
 //MARK: - AuthorizationQueryParameters
@@ -70,9 +76,13 @@ extension UserAccessToken: Content {
 }
 
 extension UserAccessToken {
-    /// Converts `self` to an `OAuthTokens` and saves it to db.
-    func convertToOAuthToken<Token>(req: Request, issuer: Issuer, as type: Token.Type)
-    -> EventLoopFuture<Token> where Token: OAuthTokenRepresentative {
+    /// Converts `self` to an `OAuthToken` and saves it to db.
+    func convertToOAuthToken<Token>(
+        req: Request,
+        issuer: Issuer,
+        flow: RetrievedToken.Flow,
+        as type: Token.Type
+    ) -> EventLoopFuture<Token> where Token: OAuthTokenRepresentative {
         let scopesFromScope = self.scope?.components(separatedBy: " ")
         let scopes = self.scopes ?? scopesFromScope ?? []
         let token: RetrievedToken = .init(
@@ -81,7 +91,8 @@ extension UserAccessToken {
             scopes: scopes,
             expiresIn: self.expiresIn,
             refreshToken: self.refreshToken,
-            issuer: issuer)
+            issuer: issuer,
+            flow: flow)
         return req.eventLoop.future().tryFlatMap {
             try Token.initializeAndSave(request: req, token: token, oldToken: nil)
         }
@@ -132,7 +143,7 @@ extension UserRefreshToken: Content {
 extension UserRefreshToken {
     /// Makes a new token with refreshed info and saves it to db.
     /// - Parameter oldToken: The expired token.
-    func makeNewOAuthToken<Token>(req: Request, oldToken: Token)
+    func makeNewOAuthToken<Token>(req: Request, flow: RetrievedToken.Flow, oldToken: Token)
     -> EventLoopFuture<Token> where Token: OAuthTokenRepresentative {
         let scopesFromScope: [String]
         if let scope = self.scope {
@@ -149,7 +160,8 @@ extension UserRefreshToken {
             scopes: scopes,
             expiresIn: self.expiresIn,
             refreshToken: oldToken.refreshToken,
-            issuer: oldToken.issuer)
+            issuer: oldToken.issuer,
+            flow: flow)
         return req.eventLoop.future().tryFlatMap {
             try Token.initializeAndSave(request: req, token: token, oldToken: oldToken)
         }

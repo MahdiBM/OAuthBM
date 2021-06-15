@@ -8,28 +8,28 @@ public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
     /// after the user hits the authorization endpoint
     /// and gets redirected back to this app by the provider.
     ///
-    /// This is part of the `OAuth authorization code flow`
-    ///
     /// - Throws: OAuthableError in case of error.
     func authorizationCallback(_ req: Request)
-    -> EventLoopFuture<(state: State, token: Tokens)> {
+    -> EventLoopFuture<(state: State, token: Token)> {
         req.logger.trace("OAuth2 authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
         var oauthable: some ExplicitFlowAuthorizable { self }
         return oauthable.authorizationCallback(req).flatMap { state, accessToken in
-            accessToken.convertToOAuthToken(req: req, issuer: self.issuer, as: Tokens.self)
-                .map({ (state: state as! State, token: $0) })
+            accessToken.convertToOAuthToken(
+                req: req,
+                issuer: self.issuer,
+                flow: .clientCredentialsFlow,
+                as: Token.self
+            ).map({ (state: state as! State, token: $0) })
         }
     }
     
     /// Immediately tries to refresh the token.
     ///
-    /// This is part of the `OAuth authorization code flow`
-    ///
     /// - Throws: OAuthableError in case of error.
     /// - Returns: A fresh token.
-    func renewToken(_ req: Request, token: Tokens) -> EventLoopFuture<Tokens> {
+    func renewToken(_ req: Request, token: Token) -> EventLoopFuture<Token> {
         var oauthable: some ExplicitFlowAuthorizable { self }
         let refreshTokenContent = oauthable
             .renewToken(req, refreshToken: token.refreshToken)
@@ -49,7 +49,7 @@ public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
             }
         }
         let newToken = removeTokenIfRevoked.flatMap { refreshToken in
-            refreshToken.makeNewOAuthToken(req: req, oldToken: token)
+            refreshToken.makeNewOAuthToken(req: req, flow: .authorizationCodeFlow, oldToken: token)
         }
         let deleteOldToken = newToken.flatMap { newToken in
             token.delete(on: req.db).map { _ in newToken }
@@ -60,10 +60,8 @@ public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
     
     /// Renew's the token if needed.
     ///
-    /// This is part of the `OAuth authorization code flow`
-    ///
     /// - Returns: The same token of not expired, otherwise a fresh token.
-    func renewTokenIfExpired(_ req: Request, token: Tokens) -> EventLoopFuture<Tokens> {
+    func renewTokenIfExpired(_ req: Request, token: Token) -> EventLoopFuture<Token> {
         if token.hasExpired {
             req.logger.trace("Token has expired. Will try to acquire new one.", metadata: [
                 "type": .string("\(Self.self)"),
@@ -86,7 +84,7 @@ public extension ClientFlowAuthorizable where Self: OAuthTokenConvertible {
     /// Tries to acquire an app access token.
     ///
     /// - Throws: OAuthableError in case of error.
-    func getAppAccessToken(_ req: Request) -> EventLoopFuture<Tokens> {
+    func getAppAccessToken(_ req: Request) -> EventLoopFuture<Token> {
         
         var oauthable: some ClientFlowAuthorizable { self }
         let appAccessToken = oauthable.getAppAccessToken(req)
@@ -97,11 +95,12 @@ public extension ClientFlowAuthorizable where Self: OAuthTokenConvertible {
                 scopes: Self.Scopes.allCases.map({ $0.rawValue }),
                 expiresIn: token.expiresIn,
                 refreshToken: "",
-                issuer: self.issuer
+                issuer: self.issuer,
+                flow: .clientCredentialsFlow
             )
         }
         let oauthToken = retrievedToken.tryFlatMap { token in
-            try Tokens.initializeAndSave(request: req, token: token, oldToken: nil)
+            try Token.initializeAndSave(request: req, token: token, oldToken: nil)
         }
         
         return oauthToken

@@ -22,7 +22,7 @@
 //
 //func configure(app: Application) {
 //    // Migrations
-//    app.migrations.add(OAuthTokens.Create())
+//    app.migrations.add(OAuthToken.Create())
 //    
 //    // Databases
 //    let db = DatabaseConfigurationFactory.postgres(

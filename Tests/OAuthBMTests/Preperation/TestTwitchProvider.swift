@@ -9,7 +9,7 @@ import OAuthBM
 //let testTwitchProvider = TwitchOAuthProvider.init(
 //    clientId: "",
 //    clientSecret: "",
-//    tokensType: OAuthTokens.self,
+//    tokensType: OAuthToken.self,
 //    callbackUrlsType: CallbackUrls.self)
 //
 //enum CallbackUrls: String {
