@@ -79,3 +79,31 @@ public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
         }
     }
 }
+
+// ClientFlowAuthorizable + OAuthTokenConvertible
+
+public extension ClientFlowAuthorizable where Self: OAuthTokenConvertible {
+    /// Tries to acquire an app access token.
+    ///
+    /// - Throws: OAuthableError in case of error.
+    func getAppAccessToken(_ req: Request) -> EventLoopFuture<Tokens> {
+        
+        var oauthable: some ClientFlowAuthorizable { self }
+        let appAccessToken = oauthable.getAppAccessToken(req)
+        let retrievedToken = appAccessToken.map { token in
+            RetrievedToken(
+                accessToken: token.accessToken,
+                tokenType: token.tokenType,
+                scopes: Self.Scopes.allCases.map({ $0.rawValue }),
+                expiresIn: token.expiresIn,
+                refreshToken: nil,
+                issuer: self.issuer
+            )
+        }
+        let oauthToken = retrievedToken.tryFlatMap { token in
+            try Tokens.initializeAndSave(request: req, token: token, oldToken: nil)
+        }
+        
+        return oauthToken
+    }
+}
