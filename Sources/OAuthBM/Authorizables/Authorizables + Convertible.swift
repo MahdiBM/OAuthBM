@@ -95,6 +95,7 @@ public extension ClientFlowAuthorizable where Self: OAuthTokenConvertible {
                 scopes: Self.Scopes.allCases.map({ $0.rawValue }),
                 expiresIn: token.expiresIn,
                 refreshToken: "",
+                refreshTokenExpiresIn: 0,
                 issuer: self.issuer,
                 flow: .clientCredentialsFlow
             )
@@ -104,5 +105,31 @@ public extension ClientFlowAuthorizable where Self: OAuthTokenConvertible {
         }
         
         return oauthToken
+    }
+}
+
+// WebAppFlowAuthorizable + OAuthTokenConvertible
+
+public extension WebAppFlowAuthorizable where Self: OAuthTokenConvertible {
+    
+    /// Takes care of callback endpoint's actions,
+    /// after the user hits the authorization endpoint
+    /// and gets redirected back to this app by the provider.
+    ///
+    /// - Throws: OAuthableError in case of error.
+    func authorizationCallback(_ req: Request)
+    -> EventLoopFuture<(state: State, token: Token)> {
+        req.logger.trace("OAuth2 authorization callback called.", metadata: [
+            "type": .string("\(Self.self)")
+        ])
+        var oauthable: some WebAppFlowAuthorizable { self }
+        return oauthable.webAppAuthorizationCallback(req).flatMap { state, accessToken in
+            accessToken.convertToOAuthToken(
+                req: req,
+                issuer: self.issuer,
+                flow: .webAppFlow,
+                as: Token.self
+            ).map({ (state: state as! State, token: $0) })
+        }
     }
 }

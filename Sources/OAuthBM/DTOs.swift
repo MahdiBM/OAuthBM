@@ -5,19 +5,21 @@ import Fluent
 
 /// A container that is passed to
 /// `OAuthTokenRepresentative/initializeAndSave(request:token:oldToken)` to make a new token.
-public struct RetrievedToken {
+public struct RetrievedToken: Content {
     //MARK: Normal OAuth-2 access-token declarations
     public var accessToken: String
     public var tokenType: String
     public var scopes: [String]
     public var expiresIn: Int
     public var refreshToken: String
+    public var refreshTokenExpiresIn: Int
     public var issuer: Issuer
     public var flow: Flow
     
     public enum Flow: String, Content {
         case authorizationCodeFlow
         case clientCredentialsFlow
+        case webAppFlow
     }
 }
 
@@ -40,7 +42,8 @@ public struct UserAccessToken {
     public var scope: String?
     public var scopes: [String]?
     public var expiresIn: Int
-    public var refreshToken: String
+    public var refreshToken: String?
+    public var refreshTokenExpiresIn: Int?
 }
 
 extension UserAccessToken: Content {
@@ -51,6 +54,7 @@ extension UserAccessToken: Content {
         case scopes
         case expiresIn
         case refreshToken
+        case refreshTokenExpiresIn
         
         var stringValue: String {
             switch self {
@@ -60,6 +64,7 @@ extension UserAccessToken: Content {
             case .scopes: return "scope"
             case .expiresIn: return "expires_in"
             case .refreshToken: return "refresh_token"
+            case .refreshTokenExpiresIn: return "refresh_token_expires_in"
             }
         }
     }
@@ -71,7 +76,8 @@ extension UserAccessToken: Content {
         self.scope = try? container.decode(String.self, forKey: .scope)
         self.scopes = try? container.decode([String].self, forKey: .scopes)
         self.expiresIn = try container.decode(Int.self, forKey: .expiresIn)
-        self.refreshToken = try container.decode(String.self, forKey: .refreshToken)
+        self.refreshToken = try? container.decode(String.self, forKey: .refreshToken)
+        self.refreshTokenExpiresIn = try? container.decode(Int.self, forKey: .refreshTokenExpiresIn)
     }
 }
 
@@ -90,7 +96,8 @@ extension UserAccessToken {
             tokenType: self.tokenType,
             scopes: scopes,
             expiresIn: self.expiresIn,
-            refreshToken: self.refreshToken,
+            refreshToken: self.refreshToken ?? "",
+            refreshTokenExpiresIn: refreshTokenExpiresIn ?? 0,
             issuer: issuer,
             flow: flow)
         return req.eventLoop.future().tryFlatMap {
@@ -154,12 +161,21 @@ extension UserRefreshToken {
             scopesFromScope = []
         }
         let scopes = self.scopes ?? scopesFromScope
+        let refreshTokenExpiresIn: Int
+        if oldToken.refreshTokenExpiresIn != 0,
+           let oldCreatedAt = oldToken.createdAt {
+            refreshTokenExpiresIn = oldToken.refreshTokenExpiresIn
+            + Int(oldCreatedAt.timeIntervalSinceNow.rounded(.down))
+        } else {
+            refreshTokenExpiresIn = 0
+        }
         let token: RetrievedToken = .init(
             accessToken: self.accessToken,
             tokenType: self.tokenType,
             scopes: scopes,
             expiresIn: self.expiresIn,
             refreshToken: oldToken.refreshToken,
+            refreshTokenExpiresIn: refreshTokenExpiresIn,
             issuer: oldToken.issuer,
             flow: flow)
         return req.eventLoop.future().tryFlatMap {

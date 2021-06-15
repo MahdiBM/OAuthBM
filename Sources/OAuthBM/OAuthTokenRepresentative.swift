@@ -7,6 +7,7 @@ public protocol OAuthTokenRepresentative {
     var accessToken: String { get set }
     var refreshToken: String { get set }
     var expiresIn: Int { get set }
+    var refreshTokenExpiresIn: Int { get set }
     var scopes: [String] { get set }
     var tokenType: String { get set }
     var issuer: Issuer { get set }
