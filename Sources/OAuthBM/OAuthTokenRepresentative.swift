@@ -35,13 +35,29 @@ extension OAuthTokenRepresentative {
         return expiryDate
     }
     
+    /// The expiration date of this token's refresh-token.
+    var refreshTokenExpiryDate: Date? {
+        guard let createdAt = createdAt else {
+            return nil
+        }
+        guard self.refreshTokenExpiresIn != 0 else {
+            return .distantFuture
+        }
+        let errorMargin = 5
+        let tokenLifetime = refreshTokenExpiresIn - errorMargin
+        let expiryDate = createdAt.addingTimeInterval(TimeInterval(tokenLifetime))
+        return expiryDate
+    }
+    
     /// Whether or not this token has expired.
     var hasExpired: Bool {
-        guard let expiryDate = expiryDate else {
+        guard let expiryDate = expiryDate,
+              let refreshTokenExpiryDate = refreshTokenExpiryDate else {
             return false
         }
         let now = Date()
-        let hasExpired = expiryDate <= now
-        return hasExpired == true
+        let tokenHasExpired = expiryDate <= now
+        let refreshTokenHasExpired = refreshTokenExpiryDate <= now
+        return tokenHasExpired && refreshTokenHasExpired
     }
 }
