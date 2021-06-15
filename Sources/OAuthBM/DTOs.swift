@@ -160,7 +160,7 @@ extension UserRefreshToken {
         } else {
             scopesFromScope = []
         }
-        let scopes = self.scopes ?? scopesFromScope
+        let scopes = scopesFromScope.isEmpty ? (self.scopes ?? []) : scopesFromScope
         let refreshTokenExpiresIn: Int
         if oldToken.refreshTokenExpiresIn != 0,
            let oldCreatedAt = oldToken.createdAt {
