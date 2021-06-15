@@ -1,6 +1,24 @@
 import Vapor
 import Fluent
 import FluentPostgresDriver
+import OAuthBM
+
+func makeAndPrepareAppForTesting() -> Application {
+    let app = Application(.testing)
+    
+//    app.get("oauth", "register", ":providerName") {
+//        req -> Response in
+//        let providerName = try req.parameters.require("providerName")
+//        
+//        switch providerName {
+//        case "twitch": return testTwitchProvider
+//            .requestAuthorization(req, state: .init(customValue: "twitch", callbackUrl: .normal))
+//        default: throw Abort(.badRequest)
+//        }
+//    }
+    
+    return app
+}
 
 func configure(app: Application) {
     // Migrations

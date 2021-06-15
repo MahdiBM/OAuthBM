@@ -3,8 +3,8 @@ import Fluent
 
 //MARK: - RetrievedToken
 
-/// A container that is passed to the `initialize` func of
-/// the `OAuthTokenRepresentable` protocol to make a new token.
+/// A container that is passed to
+/// `OAuthTokenRepresentative/initializeAndSave(request:token:oldToken)` to make a new token.
 public struct RetrievedToken {
     //MARK: Normal OAuth-2 access-token declarations
     public var accessToken: String
@@ -72,7 +72,7 @@ extension UserAccessToken: Content {
 extension UserAccessToken {
     /// Converts `self` to an `OAuthTokens` and saves it to db.
     func convertToOAuthToken<Token>(req: Request, issuer: Issuer, as type: Token.Type)
-    -> EventLoopFuture<Token> where Token: OAuthTokenRepresentative & Model {
+    -> EventLoopFuture<Token> where Token: OAuthTokenRepresentative {
         let scopesFromScope = self.scope?.components(separatedBy: " ")
         let scopes = self.scopes ?? scopesFromScope ?? []
         let token: RetrievedToken = .init(
@@ -133,9 +133,16 @@ extension UserRefreshToken {
     /// Makes a new token with refreshed info and saves it to db.
     /// - Parameter oldToken: The expired token.
     func makeNewOAuthToken<Token>(req: Request, oldToken: Token)
-    -> EventLoopFuture<Token> where Token: OAuthTokenRepresentative & Model {
-        let scopesFromScope = self.scope?.components(separatedBy: " ")
-        let scopes = self.scopes ?? scopesFromScope ?? []
+    -> EventLoopFuture<Token> where Token: OAuthTokenRepresentative {
+        let scopesFromScope: [String]
+        if let scope = self.scope {
+            scopesFromScope = scope.contains(",") ?
+                scope.components(separatedBy: ",") :
+                scope.components(separatedBy: " ")
+        } else {
+            scopesFromScope = []
+        }
+        let scopes = self.scopes ?? scopesFromScope
         let token: RetrievedToken = .init(
             accessToken: self.accessToken,
             tokenType: self.tokenType,

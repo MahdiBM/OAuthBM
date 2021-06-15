@@ -1,8 +1,8 @@
 import Vapor
 
-// OAuthable + OAuthTokenConvertible
+// ExplicitFlowAuthorizable + OAuthTokenConvertible
 
-public extension OAuthable where Self: OAuthTokenConvertible {
+public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
 
     /// Takes care of callback endpoint's actions,
     /// after the user hits the authorization endpoint
@@ -16,7 +16,7 @@ public extension OAuthable where Self: OAuthTokenConvertible {
         req.logger.trace("OAuth2 authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
-        var oauthable: some OAuthable { self }
+        var oauthable: some ExplicitFlowAuthorizable { self }
         return oauthable.authorizationCallback(req).flatMap { state, accessToken in
             accessToken.convertToOAuthToken(req: req, issuer: self.issuer, as: Tokens.self)
                 .map({ (state: state as! State, token: $0) })
@@ -30,7 +30,7 @@ public extension OAuthable where Self: OAuthTokenConvertible {
     /// - Throws: OAuthableError in case of error.
     /// - Returns: A fresh token.
     func renewToken(_ req: Request, token: Tokens) -> EventLoopFuture<Tokens> {
-        var oauthable: some OAuthable { self }
+        var oauthable: some ExplicitFlowAuthorizable { self }
         let refreshTokenContent = oauthable
             .renewToken(req, refreshToken: token.refreshToken)
         let removeTokenIfRevoked = refreshTokenContent.flatMapAlways {

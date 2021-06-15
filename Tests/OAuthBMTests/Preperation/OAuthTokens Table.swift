@@ -2,6 +2,8 @@ import Vapor
 import Fluent
 @testable import OAuthBM
 
+// Fro documentation, read ``OAuthTokenRepresentative``'s documentations.
+
 final class OAuthTokens: Model, Content, OAuthTokenRepresentative {
     
     static let schema = "oauthToken"
