@@ -7,10 +7,8 @@ extension ClientFlowAuthorizable {
     
     /// The request to acquire an app access token.
     ///
-    /// This is part of the `OAuth client credentials flow`
-    ///
     /// - Throws: OAuthableError in case of error.
-    func appAccessTokenRequest() throws -> ClientRequest {
+    private func appAccessTokenRequest() throws -> ClientRequest {
         let queryParams = QueryParameters.init(
             client_id: self.clientId,
             client_secret: self.clientSecret,
@@ -33,10 +31,8 @@ extension ClientFlowAuthorizable {
     
     /// Tries to acquire an app access token.
     ///
-    /// This is part of the `OAuth client credentials flow`
-    ///
     /// - Throws: OAuthableError in case of error.
-    func getAppAccessToken(_ req: Request) -> EventLoopFuture<AppAccessToken> {
+    public func getAppAccessToken(_ req: Request) -> EventLoopFuture<AppAccessToken> {
         let clientRequest = req.eventLoop.tryFuture {
             try self.appAccessTokenRequest()
         }
