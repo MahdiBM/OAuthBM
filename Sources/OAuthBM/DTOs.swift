@@ -41,7 +41,7 @@ public struct UserAccessToken {
     public var tokenType: String
     public var scope: String?
     public var scopes: [String]?
-    public var expiresIn: Int
+    public var expiresIn: Int?
     public var refreshToken: String?
     public var refreshTokenExpiresIn: Int?
 }
@@ -75,7 +75,7 @@ extension UserAccessToken: Content {
         self.tokenType = try container.decode(String.self, forKey: .tokenType)
         self.scope = try? container.decode(String.self, forKey: .scope)
         self.scopes = try? container.decode([String].self, forKey: .scopes)
-        self.expiresIn = try container.decode(Int.self, forKey: .expiresIn)
+        self.expiresIn = try? container.decode(Int.self, forKey: .expiresIn)
         self.refreshToken = try? container.decode(String.self, forKey: .refreshToken)
         self.refreshTokenExpiresIn = try? container.decode(Int.self, forKey: .refreshTokenExpiresIn)
     }
@@ -95,7 +95,7 @@ extension UserAccessToken {
             accessToken: self.accessToken,
             tokenType: self.tokenType,
             scopes: scopes,
-            expiresIn: self.expiresIn,
+            expiresIn: self.expiresIn ?? 0,
             refreshToken: self.refreshToken ?? "",
             refreshTokenExpiresIn: refreshTokenExpiresIn ?? 0,
             issuer: issuer,
