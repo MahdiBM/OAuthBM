@@ -89,8 +89,15 @@ extension UserAccessToken {
         flow: RetrievedToken.Flow,
         as type: Token.Type
     ) -> EventLoopFuture<Token> where Token: OAuthTokenRepresentative {
-        let scopesFromScope = self.scope?.components(separatedBy: " ")
-        let scopes = self.scopes ?? scopesFromScope ?? []
+        let scopesFromScope: [String]
+        if let scope = self.scope {
+            scopesFromScope = scope.contains(",") ?
+            scope.components(separatedBy: ",") :
+            scope.components(separatedBy: " ")
+        } else {
+            scopesFromScope = []
+        }
+        let scopes = scopesFromScope.isEmpty ? (self.scopes ?? []) : scopesFromScope
         let token: RetrievedToken = .init(
             accessToken: self.accessToken,
             tokenType: self.tokenType,
