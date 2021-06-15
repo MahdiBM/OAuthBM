@@ -117,7 +117,7 @@ public extension WebAppFlowAuthorizable where Self: OAuthTokenConvertible {
     /// and gets redirected back to this app by the provider.
     ///
     /// - Throws: OAuthableError in case of error.
-    func authorizationCallback(_ req: Request)
+    func webAppAuthorizationCallback(_ req: Request)
     -> EventLoopFuture<(state: State, token: Token)> {
         req.logger.trace("OAuth2 authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
