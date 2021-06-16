@@ -83,6 +83,7 @@ extension OAuthableError {
         case invalidCallback
         case invalidClientSecret
         case invalidGrant
+        case invalidScope
         case unknown(error: String?)
         
         private var rawValue: String {
@@ -104,6 +105,7 @@ extension OAuthableError {
             case .invalidCallback: return "invalid_callback"
             case .invalidClientSecret: return "invalid_client_secret"
             case .invalidGrant: return "invalid_grant"
+            case .invalidScope: return "invalid_scope"
             case .unknown: return ""
             }
         }
@@ -126,45 +128,48 @@ extension OAuthableError {
             .invalidCallback,
             .invalidClientSecret,
             .invalidGrant,
+            .invalidScope,
             .unknown(error: ""),
         ]
         
         private var description: String {
             switch self {
             case .unsupportedOverHttp:
-                return "OAuth 2.0 only supports the calls over https."
+                return "OAuth 2.0 only supports the calls over https"
             case .versionRejected:
-                return "An unsupported version of OAuth was supplied."
+                return "An unsupported version of OAuth was supplied"
             case .parameterAbsent:
-                return "A required parameter is missing from the request."
+                return "A required parameter is missing from the request"
             case .parameterRejected:
-                return "A parameter was too long."
+                return "A parameter was too long"
             case .invalidClient:
-                return "An invalid client ID was given."
+                return "An invalid client ID was given"
             case .invalidRequest:
-                return "An invalid request parameter was given."
+                return "An invalid request parameter was given"
             case .unsupportedResponseType:
-                return "The provided response type does not match the request."
+                return "The provided response type does not match the request"
             case .unsupportedGrantType:
-                return "The provided grant type does not match the request."
+                return "The provided grant type does not match the request"
             case .invalidParam:
-                return "An invalid request parameter was provided."
+                return "An invalid request parameter was provided"
             case .unauthorizedClient:
-                return "The client is not given permissions to perform this action."
+                return "The client is not given permissions to perform this action"
             case .accessDenied:
-                return "The resource owner refused the request for authorization."
+                return "The resource owner refused the request for authorization"
             case .serverError:
-                return "An unexpected error happened."
+                return "An unexpected error happened"
             case .tokenExpired:
-                return "The provided token has expired."
+                return "The provided token has expired"
             case .invalidToken:
-                return "The provided token was invalid."
+                return "The provided token was invalid"
             case .invalidCallback:
-                return "The provided callback URI does not match the consumer key."
+                return "The provided callback URI does not match the consumer key"
             case .invalidClientSecret:
-                return "The provided client secret is invalid."
+                return "The provided client secret is invalid"
             case .invalidGrant:
-                return "The provided token has either expired or is invalid."
+                return "The provided token has either expired or is invalid"
+            case .invalidScope:
+                return "The requested scope is invalid, unknown, or malformed"
             case .unknown(let error): return "UNKNOWN: " + (error ?? "NIL")
             }
         }
