@@ -67,7 +67,8 @@ extension ExplicitFlowAuthorizable {
             guard state == urlState
             else { throw OAuthableError.serverError(error: .invalidCookie) }
         } catch {
-            return req.eventLoop.future(error: error)
+            return req.eventLoop.future(error: OAuthableError.providerError(
+                error: .unknown(error: error.localizedDescription)))
         }
         
         guard let code = req.query[String.self, at: "code"] else {

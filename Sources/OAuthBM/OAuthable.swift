@@ -130,6 +130,11 @@ private struct QueryError: Decodable {
     private let error: String
     private let errorDescription: Int
     
+    enum CodingKeys: String, CodingKey {
+        case error = "error"
+        case errorDescription = "error_description"
+    }
+    
     static func extractOAuthError(from req: Request) -> OAuthableError? {
         guard let value = try? req.query.decode(Self.self),
               let providerError = OAuthableError.ProviderError(rawValue: value.error)
