@@ -13,9 +13,9 @@ public enum OAuthableError: AbortError {
     public var reason: String {
         switch self {
         case let .providerError(_, error):
-            return "Provider failed with error: \(error.description)"
+            return "Provider failed. Error: \(error.errorDescription)"
         case let .serverError(_, error):
-            return "Server failed with error: \(error.description)"
+            return "Server failed. Error: \(error.errorDescription)"
         }
     }
     
@@ -44,18 +44,18 @@ extension OAuthableError {
         case queryParametersEncode(policy: QueryParametersPolicy)
         case unknown(error: String?)
         
-        fileprivate var description: String {
+        fileprivate var errorDescription: String {
             switch self {
             case .invalidCookie:
-                return "Could not approve the legitimacy of your request. Please use a web"
+                return "[Could not approve the legitimacy of your request. Please use a web"
                     + " browser that allows cookies (e.g. Google Chrome, Firefox, Microsoft Edge)"
-                    + " , or enable cookies for this website."
+                    + " , or enable cookies for this website.]"
             case .stateDecode(let state):
-                return "Could not decode state \(state.debugDescription)."
+                return "[Could not decode state \(state.debugDescription).]"
             case .queryParametersEncode(let policy):
-                return "Failed to encode query parameters into"
-                    + " the request using policy `\(policy.rawValue)`."
-            case .unknown(let error): return "UNKNOWN: " + (error ?? "NIL")
+                return "[Failed to encode query parameters into"
+                    + " the request using policy `\(policy.rawValue)`.]"
+            case .unknown(let error): return "[UNKNOWN: \(error ?? "NIL")]"
             }
         }
         
@@ -129,7 +129,7 @@ extension OAuthableError {
             .unknown(error: ""),
         ]
         
-        fileprivate var description: String {
+        private var description: String {
             switch self {
             case .unsupportedOverHttp:
                 return "OAuth 2.0 only supports the calls over https."
@@ -166,6 +166,13 @@ extension OAuthableError {
             case .invalidGrant:
                 return "The provided token has either expired or is invalid."
             case .unknown(let error): return "UNKNOWN: " + (error ?? "NIL")
+            }
+        }
+        
+        fileprivate var errorDescription: String {
+            switch self {
+            case .unknown(let errorString): return "[UNKNOWN: \(errorString ?? "NIL")]"
+            default: return "[error: \(self.rawValue), reason: \(self.description)]"
             }
         }
         
