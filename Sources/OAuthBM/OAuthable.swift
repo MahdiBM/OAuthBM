@@ -96,20 +96,33 @@ extension OAuthable {
 }
 
 private struct ContentError: Decodable {
-    private let message: String
-    private let status: Int
+    struct MessageError: Decodable {
+        let message: String
+        let status: Int
+    }
+    
+    struct ErrorError: Decodable {
+        let error: String
+    }
     
     static func extractOAuthError(from res: ClientResponse) -> OAuthableError? {
-        guard let value = try? res.content.decode(Self.self) else { return nil }
-        let providerError: OAuthableError.ProviderError
-        if let error = OAuthableError.ProviderError(fromDescription: value.message) {
-            providerError = error
-        } else if let error = OAuthableError.ProviderError(rawValue: value.message) {
-            providerError = error
-        } else {
-            return nil
+        func oauthError(_ providerError: OAuthableError.ProviderError) -> OAuthableError {
+            .providerError(error: providerError)
         }
-        return OAuthableError.providerError(status: res.status, error: providerError)
+        if let value = try? res.content.decode(MessageError.self) {
+            if let error =  OAuthableError.ProviderError(rawValue: value.message) {
+                return oauthError(error)
+            } else if let error = OAuthableError.ProviderError(fromDescription: value.message) {
+                return oauthError(error)
+            }
+        } else if let value = try? res.content.decode(ErrorError.self) {
+            if let error = OAuthableError.ProviderError(rawValue: value.error) {
+                return oauthError(error)
+            } else if let error = OAuthableError.ProviderError(fromDescription: value.error) {
+                return oauthError(error)
+            }
+        }
+        return nil
     }
 }
 
