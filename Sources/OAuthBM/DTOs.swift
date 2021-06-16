@@ -123,6 +123,7 @@ public struct UserRefreshToken {
     public var scope: String?
     public var scopes: [String]?
     public var expiresIn: Int
+    public var refreshTokenExpiresIn: Int?
 }
 
 extension UserRefreshToken: Content {
@@ -132,6 +133,7 @@ extension UserRefreshToken: Content {
         case scope
         case scopes
         case expiresIn
+        case refreshTokenExpiresIn
         
         var stringValue: String {
             switch self {
@@ -140,6 +142,7 @@ extension UserRefreshToken: Content {
             case .scope: return "scope"
             case .scopes: return "scope"
             case .expiresIn: return "expires_in"
+            case .refreshTokenExpiresIn: return "refresh_token_expires_in"
             }
         }
     }
@@ -151,6 +154,7 @@ extension UserRefreshToken: Content {
         self.scope = try? container.decode(String.self, forKey: .scope)
         self.scopes = try? container.decode([String].self, forKey: .scopes)
         self.expiresIn = try container.decode(Int.self, forKey: .expiresIn)
+        self.refreshTokenExpiresIn = try? container.decode(Int.self, forKey: .refreshTokenExpiresIn)
     }
 }
 
@@ -168,21 +172,13 @@ extension UserRefreshToken {
             scopesFromScope = []
         }
         let scopes = scopesFromScope.isEmpty ? (self.scopes ?? []) : scopesFromScope
-        let refreshTokenExpiresIn: Int
-        if oldToken.refreshTokenExpiresIn != 0,
-           let oldCreatedAt = oldToken.createdAt {
-            refreshTokenExpiresIn = oldToken.refreshTokenExpiresIn
-            + Int(oldCreatedAt.timeIntervalSinceNow.rounded(.down))
-        } else {
-            refreshTokenExpiresIn = 0
-        }
         let token: RetrievedToken = .init(
             accessToken: self.accessToken,
             tokenType: self.tokenType,
             scopes: scopes,
             expiresIn: self.expiresIn,
             refreshToken: oldToken.refreshToken,
-            refreshTokenExpiresIn: refreshTokenExpiresIn,
+            refreshTokenExpiresIn: self.refreshTokenExpiresIn ?? 0,
             issuer: oldToken.issuer,
             flow: flow)
         return req.eventLoop.future().tryFlatMap {

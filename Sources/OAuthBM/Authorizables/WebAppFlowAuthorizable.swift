@@ -118,4 +118,47 @@ extension WebAppFlowAuthorizable {
         
         return clientRequest
     }
+    
+    /// The request to refresh an expired token with.
+    ///
+    /// - Throws: OAuthableError in case of error.
+    private func webAppRefreshTokenRequest(refreshToken: String) throws -> ClientRequest {
+        let queryParams = QueryParameters.init(
+            client_id: self.clientId,
+            client_secret: self.clientSecret,
+            grant_type: "refresh_token",
+            refresh_token: refreshToken)
+        var clientRequest = ClientRequest()
+        clientRequest.method = .POST
+        clientRequest.url = .init(string: self.providerTokenUrl)
+        
+        let queryParametersEncode: Void? = try? self.queryParametersPolicy
+            .inject(parameters: queryParams, into: &clientRequest)
+        guard queryParametersEncode != nil else {
+            throw OAuthableError.serverError(
+                status: .preconditionFailed,
+                error: .queryParametersEncode(policy: queryParametersPolicy)
+            )
+        }
+        
+        return clientRequest
+    }
+    
+    /// Immediately tries to refresh the token.
+    ///
+    /// - Throws: OAuthableError in case of error.
+    /// - Returns: A fresh token.
+    public func renewWebAppToken(_ req: Request, refreshToken: String)
+    -> EventLoopFuture<UserRefreshToken> {
+        let clientRequest = req.eventLoop.tryFuture {
+            try self.webAppRefreshTokenRequest(refreshToken: refreshToken)
+        }
+        let clientResponse = clientRequest.flatMap {
+            req.client.send($0)
+        }
+        let refreshTokenContent = clientResponse.flatMap {
+            decode(response: $0, request: req, as: UserRefreshToken.self)
+        }
+        return refreshTokenContent
+    }
 }
