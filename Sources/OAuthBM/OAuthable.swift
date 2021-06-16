@@ -128,7 +128,7 @@ private struct ContentError: Decodable {
 
 private struct QueryError: Decodable {
     private let error: String
-    private let errorDescription: Int
+    private let errorDescription: String
     
     enum CodingKeys: String, CodingKey {
         case error = "error"
