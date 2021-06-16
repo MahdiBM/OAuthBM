@@ -25,9 +25,12 @@ public protocol OAuthTokenRepresentative {
 
 extension OAuthTokenRepresentative {
     /// The expiration date of this token.
-    var expiryDate: Date? {
+    private var expiryDate: Date? {
         guard let createdAt = createdAt else {
             return nil
+        }
+        guard self.expiresIn != 0 else {
+            return .distantFuture
         }
         let errorMargin = 5
         let tokenLifetime = expiresIn  - errorMargin
@@ -36,7 +39,7 @@ extension OAuthTokenRepresentative {
     }
     
     /// The expiration date of this token's refresh-token.
-    var refreshTokenExpiryDate: Date? {
+    private var refreshTokenExpiryDate: Date? {
         guard let createdAt = createdAt else {
             return nil
         }
@@ -50,19 +53,24 @@ extension OAuthTokenRepresentative {
     }
     
     /// Whether or not this token has expired.
-    var hasExpired: Bool {
-        guard let expiryDate = expiryDate,
-              let refreshTokenExpiryDate = refreshTokenExpiryDate else {
+    var tokenHasExpired: Bool {
+        guard self.expiresIn != 0,
+              let expiryDate = expiryDate else {
             return false
         }
         let now = Date()
-        let tokenHasExpired = expiryDate <= now
-        let refreshTokenHasExpired = refreshTokenExpiryDate <= now
-        return tokenHasExpired && refreshTokenHasExpired
+        let hasExpired = expiryDate <= now
+        return hasExpired
     }
     
-    /// Whether or not this token is refreshable
-    var isRefreshable: Bool {
-        self.expiresIn != 0
+    /// Whether or not this token's refresh-token has expired.
+    var refreshTokenHasExpired: Bool {
+        guard self.refreshTokenExpiresIn != 0,
+              let expiryDate = refreshTokenExpiryDate else {
+            return false
+        }
+        let now = Date()
+        let hasExpired = expiryDate <= now
+        return hasExpired
     }
 }

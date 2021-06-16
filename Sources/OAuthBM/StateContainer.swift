@@ -52,7 +52,7 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
         )
     }
     
-    internal init (decodeFrom description: String) throws {
+    internal init(decodeFrom description: String) throws {
         let comps = description.components(separatedBy: ",,, ")
         guard comps.count == 3, let callbackUrl = CallbackUrls(rawValue: comps[1]) else {
             throw OAuthableError.serverError(

@@ -62,7 +62,7 @@ public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
     ///
     /// - Returns: The same token if not expired, otherwise a fresh token.
     func renewTokenIfExpired(_ req: Request, token: Token) -> EventLoopFuture<Token> {
-        if token.isRefreshable, token.hasExpired {
+        if token.tokenHasExpired {
             req.logger.trace("Token has expired. Will try to acquire new one.", metadata: [
                 "type": .string("\(Self.self)"),
                 "token": .stringConvertible(token),
@@ -170,7 +170,7 @@ public extension WebAppFlowAuthorizable where Self: OAuthTokenConvertible {
     ///
     /// - Returns: The same token if not expired, otherwise a fresh token.
     func renewWebAppTokenIfExpired(_ req: Request, token: Token) -> EventLoopFuture<Token> {
-        if token.isRefreshable, token.hasExpired {
+        if token.tokenHasExpired {
             req.logger.trace("Token has expired. Will try to acquire new one.", metadata: [
                 "type": .string("\(Self.self)"),
                 "token": .stringConvertible(token),
