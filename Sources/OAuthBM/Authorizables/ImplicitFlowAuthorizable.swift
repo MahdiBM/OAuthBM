@@ -1,6 +1,8 @@
 import Vapor
 
 /// Protocol to enable `OAuth implicit code flow` actions
+///
+/// `OAuth implicit code flow` is called `OAuth implicit grant flow` in some places.
 public protocol ImplicitFlowAuthorizable: OAuthable { }
 
 extension ImplicitFlowAuthorizable {
