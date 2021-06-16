@@ -15,7 +15,6 @@ extension ImplicitFlowAuthorizable {
     ) -> String {
         let queryParams = QueryParameters.init(
             clientId: self.clientId,
-            responseType: .token,
             redirectUri: state.callbackUrl.rawValue,
             scope: scopes.map(\.rawValue).joined(separator: " "),
             state: state.description)
