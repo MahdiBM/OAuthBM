@@ -70,15 +70,11 @@ extension OAuthable {
     internal func decodeErrorIfAvailable(req: Request, res: ClientResponse?) -> OAuthableError? {
         if let queryError = QueryError.extractOAuthError(from: req) {
             return queryError
-        } else if let res = res {
-            if let contentError = ContentError.extractOAuthError(from: res) {
-                return contentError
-            } else {
-                return nil
-            }
-        } else {
-            return nil
+        } else if let res = res,
+                  let contentError = ContentError.extractOAuthError(from: res) {
+            return contentError
         }
+        return nil
     }
     
     internal func decodeError(req: Request, res: ClientResponse?) -> OAuthableError {
@@ -90,7 +86,7 @@ extension OAuthable {
                 error: .unknown(error: res.body?.contentString)
             )
         } else {
-            return OAuthableError.serverError(error: .unknown(error: req.body.string))
+            return OAuthableError.serverError(error: .unknown(error: req.body.data?.contentString))
         }
     }
 }
