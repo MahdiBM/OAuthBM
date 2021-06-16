@@ -12,7 +12,7 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
     internal let randomValue: String
     
     /// Separator between values in `description`.
-    internal let separator = ",,,,,"
+    internal let separator = ",,,"
     
     /// String representation of the container.
     var description: String {
@@ -53,7 +53,7 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
     }
     
     internal init(decodeFrom description: String) throws {
-        let comps = description.components(separatedBy: ",,,,,")
+        let comps = description.components(separatedBy: ",,,")
         guard comps.count == 3, let callbackUrl = CallbackUrls(rawValue: comps[1]) else {
             throw OAuthableError.serverError(
                 status: .badRequest, error: .stateDecode(state: description))

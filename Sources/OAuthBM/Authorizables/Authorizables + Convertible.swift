@@ -19,7 +19,7 @@ public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
             accessToken.convertToOAuthToken(
                 req: req,
                 issuer: self.issuer,
-                flow: .clientCredentialsFlow,
+                flow: .authorizationCodeFlow,
                 as: Token.self
             ).map({ (state: state as! State, token: $0) })
         }

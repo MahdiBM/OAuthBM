@@ -14,9 +14,9 @@ extension ExplicitFlowAuthorizable {
         scopes: [Scopes] = Array(Scopes.allCases)
     ) -> String {
         let queryParams = QueryParameters.init(
-            client_id: self.clientId,
-            response_type: "code",
-            redirect_uri: state.callbackUrl.rawValue,
+            clientId: self.clientId,
+            responseType: .code,
+            redirectUri: state.callbackUrl.rawValue,
             scope: scopes.map(\.rawValue).joined(separator: " "),
             state: state.description)
         let redirectUrl = self.providerAuthorizationUrl + "?" + queryParams.queryString
@@ -96,10 +96,10 @@ extension ExplicitFlowAuthorizable {
     private func userAccessTokenRequest(callbackUrl: CallbackUrls, code: String)
     throws -> ClientRequest {
         let queryParams = QueryParameters.init(
-            client_id: self.clientId,
-            client_secret: self.clientSecret,
-            redirect_uri: callbackUrl.rawValue,
-            grant_type: "authorization_code",
+            clientId: self.clientId,
+            clientSecret: self.clientSecret,
+            redirectUri: callbackUrl.rawValue,
+            grantType: .authorizationCode,
             code: code)
         var clientRequest = ClientRequest()
         clientRequest.method = .POST
@@ -122,10 +122,10 @@ extension ExplicitFlowAuthorizable {
     /// - Throws: OAuthableError in case of error.
     private func refreshTokenRequest(refreshToken: String) throws -> ClientRequest {
         let queryParams = QueryParameters.init(
-            client_id: self.clientId,
-            client_secret: self.clientSecret,
-            grant_type: "refresh_token",
-            refresh_token: refreshToken)
+            clientId: self.clientId,
+            clientSecret: self.clientSecret,
+            grantType: .refreshToken,
+            refreshToken: refreshToken)
         var clientRequest = ClientRequest()
         clientRequest.method = .POST
         clientRequest.url = .init(string: self.providerTokenUrl)

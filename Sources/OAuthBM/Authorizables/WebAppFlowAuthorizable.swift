@@ -11,8 +11,8 @@ extension WebAppFlowAuthorizable {
     /// - Throws: OAuthableError in case of error.
     private func webAppAuthorizationRedirectUrl(state: State) -> String {
         let queryParams = QueryParameters.init(
-            client_id: self.clientId,
-            redirect_uri: state.callbackUrl.rawValue,
+            clientId: self.clientId,
+            redirectUri: state.callbackUrl.rawValue,
             state: state.description)
         let redirectUrl = self.providerAuthorizationUrl + "?" + queryParams.queryString
         return redirectUrl
@@ -90,9 +90,9 @@ extension WebAppFlowAuthorizable {
     private func webAppAccessTokenRequest(state: State, code: String)
     throws -> ClientRequest {
         let queryParams = QueryParameters.init(
-            client_id: self.clientId,
-            client_secret: self.clientSecret,
-            redirect_uri: state.callbackUrl.rawValue,
+            clientId: self.clientId,
+            clientSecret: self.clientSecret,
+            redirectUri: state.callbackUrl.rawValue,
             state: state.description,
             code: code)
         var clientRequest = ClientRequest()
@@ -116,10 +116,10 @@ extension WebAppFlowAuthorizable {
     /// - Throws: OAuthableError in case of error.
     private func webAppRefreshTokenRequest(refreshToken: String) throws -> ClientRequest {
         let queryParams = QueryParameters.init(
-            client_id: self.clientId,
-            client_secret: self.clientSecret,
-            grant_type: "refresh_token",
-            refresh_token: refreshToken)
+            clientId: self.clientId,
+            clientSecret: self.clientSecret,
+            grantType: .refreshToken,
+            refreshToken: refreshToken)
         var clientRequest = ClientRequest()
         clientRequest.method = .POST
         clientRequest.url = .init(string: self.providerTokenUrl)

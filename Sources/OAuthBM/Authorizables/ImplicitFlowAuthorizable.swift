@@ -14,9 +14,9 @@ extension ImplicitFlowAuthorizable {
         scopes: [Scopes] = Array(Scopes.allCases)
     ) -> String {
         let queryParams = QueryParameters.init(
-            client_id: self.clientId,
-            response_type: "token",
-            redirect_uri: state.callbackUrl.rawValue,
+            clientId: self.clientId,
+            responseType: .token,
+            redirectUri: state.callbackUrl.rawValue,
             scope: scopes.map(\.rawValue).joined(separator: " "),
             state: state.description)
         let redirectUrl = self.providerAuthorizationUrl + "?" + queryParams.queryString

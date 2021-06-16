@@ -10,9 +10,9 @@ extension ClientFlowAuthorizable {
     /// - Throws: OAuthableError in case of error.
     private func appAccessTokenRequest() throws -> ClientRequest {
         let queryParams = QueryParameters.init(
-            client_id: self.clientId,
-            client_secret: self.clientSecret,
-            grant_type: "client_credentials")
+            clientId: self.clientId,
+            clientSecret: self.clientSecret,
+            grantType: .clientCredentials)
         var clientRequest = ClientRequest()
         clientRequest.method = .POST
         clientRequest.url = .init(string: self.providerTokenUrl)
