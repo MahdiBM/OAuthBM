@@ -50,15 +50,8 @@ extension ImplicitFlowAuthorizable {
             "type": .string("\(Self.self)")
         ])
         
-        func error<T>(_ error: OAuthableError) -> EventLoopFuture<T> {
-            req.eventLoop.future(error: error)
-        }
-        if let err = try? req.query.get(String.self, at: "error") {
-            if let oauthError = OAuthableError.ProviderError(rawValue: err) {
-                return error(.providerError(error: oauthError))
-            } else {
-                return error(.providerError(error: .unknown(error: err)))
-            }
+        if let error = decodeErrorIfAvailable(req: req, res: nil) {
+            return req.eventLoop.future(error: error)
         }
         
         let state = req.eventLoop.tryFuture { () -> State in

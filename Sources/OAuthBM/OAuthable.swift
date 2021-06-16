@@ -44,7 +44,7 @@ public protocol OAuthable {
     var issuer: Issuer { get }
 }
 
-//MARK: - Decoder
+//MARK: - Decoders
 extension OAuthable {
     /// Decodes response's content while taking care of errors.
     /// - Throws: OAuthableError in case of error.
@@ -62,27 +62,65 @@ extension OAuthable {
                         status: .badRequest, error: .unknown(error: "\(error)"))
                 }
             } else {
-                if let error = try? req.query.get(String.self, at: "error"),
-                   let authError = OAuthableError.ProviderError(rawValue: error) {
-                    throw OAuthableError.providerError(status: res.status, error: authError)
-                } else if let error = try? res.content.decode(ErrorResponse.self) {
-                    if error.message == "Invalid refresh token" {
-                        throw OAuthableError.providerError(status: res.status, error: .invalidToken)
-                    } else {
-                        throw OAuthableError.providerError(
-                            status: res.status, error: .unknown(error: error.message))
-                    }
-                } else {
-                    throw OAuthableError.providerError(
-                        status: res.status,
-                        error: .unknown(error: res.body?.contentString))
-                }
+                throw decodeError(req: req, res: res)
             }
+        }
+    }
+    
+    internal func decodeErrorIfAvailable(req: Request, res: ClientResponse?) -> OAuthableError? {
+        if let queryError = QueryError.extractOAuthError(from: req) {
+            return queryError
+        } else if let res = res {
+            if let contentError = ContentError.extractOAuthError(from: res) {
+                return contentError
+            } else {
+                return nil
+            }
+        } else {
+            return nil
+        }
+    }
+    
+    internal func decodeError(req: Request, res: ClientResponse?) -> OAuthableError {
+        if let error = decodeErrorIfAvailable(req: req, res: res) {
+            return error
+        } else if let res = res {
+            return OAuthableError.providerError(
+                status: res.status,
+                error: .unknown(error: res.body?.contentString)
+            )
+        } else {
+            return OAuthableError.serverError(error: .unknown(error: req.body.string))
         }
     }
 }
 
-private struct ErrorResponse: Decodable {
-    let message: String
-    let status: Int
+private struct ContentError: Decodable {
+    private let message: String
+    private let status: Int
+    
+    static func extractOAuthError(from res: ClientResponse) -> OAuthableError? {
+        guard let value = try? res.content.decode(Self.self) else { return nil }
+        let providerError: OAuthableError.ProviderError
+        if let error = OAuthableError.ProviderError(fromDescription: value.message) {
+            providerError = error
+        } else if let error = OAuthableError.ProviderError(rawValue: value.message) {
+            providerError = error
+        } else {
+            return nil
+        }
+        return OAuthableError.providerError(status: res.status, error: providerError)
+    }
+}
+
+private struct QueryError: Decodable {
+    private let error: String
+    private let errorDescription: Int
+    
+    static func extractOAuthError(from req: Request) -> OAuthableError? {
+        guard let value = try? req.query.decode(Self.self),
+              let providerError = OAuthableError.ProviderError(rawValue: value.error)
+        else { return nil }
+        return OAuthableError.providerError(error: providerError)
+    }
 }

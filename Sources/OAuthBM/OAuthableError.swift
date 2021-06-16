@@ -171,9 +171,14 @@ extension OAuthableError {
         
         init? (rawValue: String) {
             guard !rawValue.replacingOccurrences(of: " ", with: "").isEmpty,
-                  let value = Self.allCases.first(where: { $0.rawValue == rawValue }) else {
-                return nil
-            }
+                  let value = Self.allCases.first(where: { $0.rawValue == rawValue })
+            else { return nil }
+            self = value
+        }
+        
+        init? (fromDescription desc: String) {
+            guard let value = Self.allCases.first(where: { $0.description.contains(desc) })
+            else { return nil }
             self = value
         }
     }

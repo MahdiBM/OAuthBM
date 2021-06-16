@@ -27,7 +27,7 @@ extension WebAppFlowAuthorizable {
         state: State,
         extraArg arg: String? = nil
     ) -> Response {
-        req.logger.trace("OAuth2 authorization requested.", metadata: [
+        req.logger.trace("OAuth2 web app authorization requested.", metadata: [
             "type": .string("\(Self.self)")
         ])
         var authUrl = self.webAppAuthorizationRedirectUrl(state: state)
@@ -46,28 +46,17 @@ extension WebAppFlowAuthorizable {
     /// - Throws: OAuthableError in case of error.
     public func webAppAuthorizationCallback(_ req: Request)
     -> EventLoopFuture<(state: State, token: UserAccessToken)> {
-        req.logger.trace("OAuth2 authorization callback called.", metadata: [
+        req.logger.trace("OAuth2 web app authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
         
-        typealias QueryParams = AuthorizationQueryParameters
-        
-        func error<T>(_ error: OAuthableError) -> EventLoopFuture<T> {
-            req.eventLoop.future(error: error)
+        guard let stateString = req.query[String.self, at: "state"] else {
+            return req.eventLoop.future(error: decodeError(req: req, res: nil))
         }
-        guard let params = try? req.query.decode(QueryParams.self) else {
-            if let err = try? req.query.get(String.self, at: "error"),
-               let oauthError = OAuthableError.ProviderError(rawValue: err) {
-                return error(.providerError(error: oauthError))
-            } else {
-                return error(.providerError(error: .unknown(error: req.body.string)))
-            }
-        }
-        
         let state: State
         do {
             state = try State.extractFrom(session: req.session)
-            let urlState = try State(decodeFrom: params.state)
+            let urlState = try State(decodeFrom: stateString)
             req.session.destroy()
             guard state == urlState
             else { throw OAuthableError.serverError(error: .invalidCookie) }
@@ -75,9 +64,12 @@ extension WebAppFlowAuthorizable {
             return req.eventLoop.future(error: error)
         }
         
+        guard let code = req.query[String.self, at: "code"] else {
+            return req.eventLoop.future(error: decodeError(req: req, res: nil))
+        }
+        
         let clientRequest = req.eventLoop.future().flatMapThrowing {
-            try self.webAppAccessTokenRequest(
-                callbackUrl: state.callbackUrl, state: state, code: params.code)
+            try self.webAppAccessTokenRequest(state: state, code: code)
         }
         let clientResponse = clientRequest.flatMap { req.client.send($0) }
         let accessTokenContent = clientResponse.flatMap {
@@ -95,12 +87,12 @@ extension WebAppFlowAuthorizable {
     /// user being redirected to this app by the provider.
     ///
     /// - Throws: OAuthableError in case of error.
-    private func webAppAccessTokenRequest(callbackUrl: CallbackUrls, state: State, code: String)
+    private func webAppAccessTokenRequest(state: State, code: String)
     throws -> ClientRequest {
         let queryParams = QueryParameters.init(
             client_id: self.clientId,
             client_secret: self.clientSecret,
-            redirect_uri: callbackUrl.rawValue,
+            redirect_uri: state.callbackUrl.rawValue,
             state: state.description,
             code: code)
         var clientRequest = ClientRequest()

@@ -56,24 +56,13 @@ extension ExplicitFlowAuthorizable {
             "type": .string("\(Self.self)")
         ])
         
-        typealias QueryParams = AuthorizationQueryParameters
-        
-        func error<T>(_ error: OAuthableError) -> EventLoopFuture<T> {
-            req.eventLoop.future(error: error)
+        guard let stateString = req.query[String.self, at: "state"] else {
+            return req.eventLoop.future(error: decodeError(req: req, res: nil))
         }
-        guard let params = try? req.query.decode(QueryParams.self) else {
-            if let err = try? req.query.get(String.self, at: "error"),
-               let oauthError = OAuthableError.ProviderError(rawValue: err) {
-                return error(.providerError(error: oauthError))
-            } else {
-                return error(.providerError(error: .unknown(error: req.body.string)))
-            }
-        }
-        
         let state: State
         do {
             state = try State.extractFrom(session: req.session)
-            let urlState = try State(decodeFrom: params.state)
+            let urlState = try State(decodeFrom: stateString)
             req.session.destroy()
             guard state == urlState
             else { throw OAuthableError.serverError(error: .invalidCookie) }
@@ -81,8 +70,12 @@ extension ExplicitFlowAuthorizable {
             return req.eventLoop.future(error: error)
         }
         
+        guard let code = req.query[String.self, at: "code"] else {
+            return req.eventLoop.future(error: decodeError(req: req, res: nil))
+        }
+        
         let clientRequest = req.eventLoop.future().flatMapThrowing {
-            try self.userAccessTokenRequest(callbackUrl: state.callbackUrl, code: params.code)
+            try self.userAccessTokenRequest(callbackUrl: state.callbackUrl, code: code)
         }
         let clientResponse = clientRequest.flatMap { req.client.send($0) }
         let accessTokenContent = clientResponse.flatMap {

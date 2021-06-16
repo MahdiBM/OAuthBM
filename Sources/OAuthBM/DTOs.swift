@@ -23,15 +23,6 @@ public struct RetrievedToken: Content {
     }
 }
 
-//MARK: - AuthorizationQueryParameters
-
-/// Parameters that are passed to callback request by the provider,
-/// after a successful authorization.
-struct AuthorizationQueryParameters: Content {
-    public var code: String
-    public var state: String
-}
-
 //MARK: - UserAccessToken
 
 /// Access token container.
