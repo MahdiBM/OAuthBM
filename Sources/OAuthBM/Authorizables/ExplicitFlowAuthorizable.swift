@@ -147,7 +147,8 @@ extension ExplicitFlowAuthorizable {
     ///
     /// - Throws: OAuthableError in case of error.
     /// - Returns: A fresh token.
-    public func renewToken(_ req: Request, refreshToken: String) -> EventLoopFuture<UserRefreshToken> {
+    public func renewToken(_ req: Request, refreshToken: String)
+    -> EventLoopFuture<UserRefreshToken> {
         let clientRequest = req.eventLoop.tryFuture {
             try self.refreshTokenRequest(refreshToken: refreshToken)
         }

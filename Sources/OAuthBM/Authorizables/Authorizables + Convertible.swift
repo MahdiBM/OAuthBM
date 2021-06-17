@@ -14,14 +14,16 @@ public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
         req.logger.trace("OAuth2 authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
-        var oauthable: some ExplicitFlowAuthorizable { self }
-        return oauthable.authorizationCallback(req).flatMap { state, accessToken in
+        var authorizationCallback: EventLoopFuture<(state: State, token: UserAccessToken)>  {
+            self.authorizationCallback(req)
+        }
+        return authorizationCallback.flatMap { state, accessToken in
             accessToken.convertToOAuthToken(
                 req: req,
                 issuer: self.issuer,
                 flow: .authorizationCodeFlow,
                 as: Token.self
-            ).map({ (state: state as! State, token: $0) })
+            ).map({ (state: state, token: $0) })
         }
     }
     
@@ -30,9 +32,9 @@ public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
     /// - Throws: OAuthableError in case of error.
     /// - Returns: A fresh token.
     func renewToken(_ req: Request, token: Token) -> EventLoopFuture<Token> {
-        var oauthable: some ExplicitFlowAuthorizable { self }
-        let refreshTokenContent = oauthable
-            .renewToken(req, refreshToken: token.refreshToken)
+        var refreshTokenContent: EventLoopFuture<UserRefreshToken> {
+           self.renewToken(req, refreshToken: token.refreshToken)
+        }
         let removeTokenIfRevoked = refreshTokenContent.flatMapAlways {
             result -> EventLoopFuture<UserRefreshToken> in
             switch result {
@@ -85,8 +87,9 @@ public extension ClientFlowAuthorizable where Self: OAuthTokenConvertible {
     ///
     /// - Throws: OAuthableError in case of error.
     func getAppAccessToken(_ req: Request, scopes: [Scopes] = []) -> EventLoopFuture<Token> {
-        var oauthable: some ClientFlowAuthorizable { self }
-        let appAccessToken = oauthable.getAppAccessToken(req)
+        var appAccessToken: EventLoopFuture<AppAccessToken> {
+            self.getAppAccessToken(req, scopes: scopes)
+        }
         let retrievedToken = appAccessToken.map { token in
             RetrievedToken(
                 accessToken: token.accessToken,
@@ -121,14 +124,16 @@ public extension WebAppFlowAuthorizable where Self: OAuthTokenConvertible {
         req.logger.trace("OAuth2 web app authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
-        var oauthable: some WebAppFlowAuthorizable { self }
-        return oauthable.webAppAuthorizationCallback(req).flatMap { state, accessToken in
+        var authorizationCallback: EventLoopFuture<(state: State, token: UserAccessToken)> {
+            self.webAppAuthorizationCallback(req)
+        }
+        return authorizationCallback.flatMap { state, accessToken in
             accessToken.convertToOAuthToken(
                 req: req,
                 issuer: self.issuer,
                 flow: .webAppFlow,
                 as: Token.self
-            ).map({ (state: state as! State, token: $0) })
+            ).map({ (state: state, token: $0) })
         }
     }
     
@@ -137,9 +142,9 @@ public extension WebAppFlowAuthorizable where Self: OAuthTokenConvertible {
     /// - Throws: OAuthableError in case of error.
     /// - Returns: A fresh token.
     func renewWebAppToken(_ req: Request, token: Token) -> EventLoopFuture<Token> {
-        var oauthable: some WebAppFlowAuthorizable { self }
-        let refreshTokenContent = oauthable
-            .renewWebAppToken(req, refreshToken: token.refreshToken)
+        var refreshTokenContent: EventLoopFuture<UserRefreshToken> {
+            self.renewWebAppToken(req, refreshToken: token.refreshToken)
+        }
         let removeTokenIfRevoked = refreshTokenContent.flatMapAlways {
             result -> EventLoopFuture<UserRefreshToken> in
             switch result {
