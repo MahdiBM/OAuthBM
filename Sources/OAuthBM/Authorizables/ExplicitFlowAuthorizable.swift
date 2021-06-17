@@ -17,7 +17,7 @@ extension ExplicitFlowAuthorizable {
             clientId: self.clientId,
             responseType: .code,
             redirectUri: state.callbackUrl.rawValue,
-            scope: scopes.map(\.rawValue).joined(separator: " "),
+            scope: joinScopes(scopes),
             state: state.description)
         let redirectUrl = self.providerAuthorizationUrl + "?" + queryParams.queryString
         return redirectUrl

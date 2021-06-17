@@ -44,6 +44,14 @@ public protocol OAuthable {
     var issuer: Issuer { get }
 }
 
+//MARK: - Extra declarations
+extension OAuthable {
+    /// All joined in a form to be used in a HTTP request.
+    internal func joinScopes(_ scopes: [Scopes]) -> String {
+        scopes.map(\.rawValue).joined(separator: "%20")
+    }
+}
+
 //MARK: - Decoders
 extension OAuthable {
     /// Decodes response's content while taking care of errors.
