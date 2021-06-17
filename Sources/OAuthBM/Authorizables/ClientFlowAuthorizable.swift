@@ -8,10 +8,11 @@ extension ClientFlowAuthorizable {
     /// The request to acquire an app access token.
     ///
     /// - Throws: OAuthableError in case of error.
-    private func appAccessTokenRequest() throws -> ClientRequest {
+    private func appAccessTokenRequest(scopes: [Scopes]) throws -> ClientRequest {
         let queryParams = QueryParameters.init(
             clientId: self.clientId,
             clientSecret: self.clientSecret,
+            scope: joinScopes(scopes),
             grantType: .clientCredentials)
         var clientRequest = ClientRequest()
         clientRequest.method = .POST
@@ -31,10 +32,14 @@ extension ClientFlowAuthorizable {
     
     /// Tries to acquire an app access token.
     ///
+    /// `scopes` defaults to an empty array because most providers
+    /// don't require/need scopes specified for app access tokens.
+    ///
     /// - Throws: OAuthableError in case of error.
-    public func getAppAccessToken(_ req: Request) -> EventLoopFuture<AppAccessToken> {
+    public func getAppAccessToken(_ req: Request, scopes: [Scopes] = [])
+    -> EventLoopFuture<AppAccessToken> {
         let clientRequest = req.eventLoop.tryFuture {
-            try self.appAccessTokenRequest()
+            try self.appAccessTokenRequest(scopes: scopes)
         }
         let clientResponse = clientRequest.flatMap {
             req.client.send($0)

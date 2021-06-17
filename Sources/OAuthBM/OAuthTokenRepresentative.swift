@@ -63,6 +63,11 @@ extension OAuthTokenRepresentative {
         return hasExpired
     }
     
+    /// Whether or not we can refresh this token.
+    var tokenIsRefreshable: Bool {
+        !self.refreshToken.isEmpty
+    }
+    
     /// Whether or not this token's refresh-token has expired.
     var refreshTokenHasExpired: Bool {
         guard self.refreshTokenExpiresIn != 0,
