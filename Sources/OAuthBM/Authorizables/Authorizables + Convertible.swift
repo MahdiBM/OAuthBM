@@ -84,8 +84,7 @@ public extension ClientFlowAuthorizable where Self: OAuthTokenConvertible {
     /// Tries to acquire an app access token.
     ///
     /// - Throws: OAuthableError in case of error.
-    func getAppAccessToken(_ req: Request) -> EventLoopFuture<Token> {
-        
+    func getAppAccessToken(_ req: Request, scopes: [Scopes] = []) -> EventLoopFuture<Token> {
         var oauthable: some ClientFlowAuthorizable { self }
         let appAccessToken = oauthable.getAppAccessToken(req)
         let retrievedToken = appAccessToken.map { token in
