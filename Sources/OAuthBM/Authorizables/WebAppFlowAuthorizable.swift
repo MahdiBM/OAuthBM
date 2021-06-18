@@ -45,7 +45,7 @@ extension WebAppFlowAuthorizable {
     ///
     /// - Throws: OAuthableError in case of error.
     public func webAppAuthorizationCallback(_ req: Request)
-    -> EventLoopFuture<(state: State, token: UserAccessToken)> {
+    -> EventLoopFuture<(state: State, token: RetrievedToken)> {
         req.logger.trace("OAuth2 web app authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
@@ -74,9 +74,12 @@ extension WebAppFlowAuthorizable {
         }
         let clientResponse = clientRequest.flatMap { req.client.send($0) }
         let accessTokenContent = clientResponse.flatMap {
-            decode(response: $0, request: req, as: UserAccessToken.self)
+            decode(response: $0, request: req, as: DecodedToken.self)
         }
-        let stateAndToken = accessTokenContent.map {
+        let retrievedToken = accessTokenContent.map {
+            $0.convertToRetrievedToken(issuer: self.issuer, flow: .webAppFlow)
+        }
+        let stateAndToken = retrievedToken.map {
             (state: state, token: $0)
         }
         
@@ -142,7 +145,7 @@ extension WebAppFlowAuthorizable {
     /// - Throws: OAuthableError in case of error.
     /// - Returns: A fresh token.
     public func renewWebAppToken(_ req: Request, refreshToken: String)
-    -> EventLoopFuture<UserRefreshToken> {
+    -> EventLoopFuture<RetrievedToken> {
         let clientRequest = req.eventLoop.tryFuture {
             try self.webAppRefreshTokenRequest(refreshToken: refreshToken)
         }
@@ -150,8 +153,11 @@ extension WebAppFlowAuthorizable {
             req.client.send($0)
         }
         let refreshTokenContent = clientResponse.flatMap {
-            decode(response: $0, request: req, as: UserRefreshToken.self)
+            decode(response: $0, request: req, as: DecodedToken.self)
         }
-        return refreshTokenContent
+        let retrievedToken = refreshTokenContent.map {
+            $0.convertToRetrievedToken(issuer: self.issuer, flow: .webAppFlow)
+        }
+        return retrievedToken
     }
 }

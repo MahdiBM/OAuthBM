@@ -14,16 +14,12 @@ public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
         req.logger.trace("OAuth2 authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
-        var authorizationCallback: EventLoopFuture<(state: State, token: UserAccessToken)>  {
+        var authorizationCallback: EventLoopFuture<(state: State, token: RetrievedToken)>  {
             self.authorizationCallback(req)
         }
         return authorizationCallback.flatMap { state, accessToken in
-            accessToken.convertToOAuthToken(
-                req: req,
-                issuer: self.issuer,
-                flow: .authorizationCodeFlow,
-                as: Token.self
-            ).map({ (state: state, token: $0) })
+            accessToken.saveToDb(req: req, oldToken: nil)
+                .map({ (state: state, token: $0) })
         }
     }
     
@@ -32,11 +28,11 @@ public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
     /// - Throws: OAuthableError in case of error.
     /// - Returns: A fresh token.
     func renewToken(_ req: Request, token: Token) -> EventLoopFuture<Token> {
-        var refreshTokenContent: EventLoopFuture<UserRefreshToken> {
-           self.renewToken(req, refreshToken: token.refreshToken)
+        var refreshTokenContent: EventLoopFuture<RetrievedToken> {
+            self.renewToken(req, refreshToken: token.refreshToken)
         }
         let removeTokenIfRevoked = refreshTokenContent.flatMapAlways {
-            result -> EventLoopFuture<UserRefreshToken> in
+            result -> EventLoopFuture<RetrievedToken> in
             switch result {
             case let .success(token): return req.eventLoop.future(token)
             case let .failure(error):
@@ -51,7 +47,7 @@ public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
             }
         }
         let newToken = removeTokenIfRevoked.flatMap { refreshToken in
-            refreshToken.makeNewOAuthToken(req: req, flow: .authorizationCodeFlow, oldToken: token)
+            refreshToken.saveToDb(req: req, oldToken: token)
         }
         let deleteOldToken = newToken.flatMap { newToken in
             token.delete(on: req.db).map { _ in newToken }
@@ -87,25 +83,13 @@ public extension ClientFlowAuthorizable where Self: OAuthTokenConvertible {
     ///
     /// - Throws: OAuthableError in case of error.
     func getAppAccessToken(_ req: Request, scopes: [Scopes] = []) -> EventLoopFuture<Token> {
-        var appAccessToken: EventLoopFuture<AppAccessToken> {
+        var appAccessToken: EventLoopFuture<RetrievedToken> {
             self.getAppAccessToken(req, scopes: scopes)
         }
-        let retrievedToken = appAccessToken.map { token in
-            RetrievedToken(
-                accessToken: token.accessToken,
-                tokenType: token.tokenType,
-                scopes: [],
-                expiresIn: token.expiresIn,
-                refreshToken: "",
-                refreshTokenExpiresIn: 0,
-                issuer: self.issuer,
-                flow: .clientCredentialsFlow
-            )
+        let oauthToken = appAccessToken.flatMap {
+            token -> EventLoopFuture<Token> in
+            token.saveToDb(req: req, oldToken: nil)
         }
-        let oauthToken = retrievedToken.tryFlatMap { token in
-            try Token.initializeAndSave(request: req, token: token, oldToken: nil)
-        }
-        
         return oauthToken
     }
 }
@@ -124,16 +108,12 @@ public extension WebAppFlowAuthorizable where Self: OAuthTokenConvertible {
         req.logger.trace("OAuth2 web app authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
-        var authorizationCallback: EventLoopFuture<(state: State, token: UserAccessToken)> {
+        var authorizationCallback: EventLoopFuture<(state: State, token: RetrievedToken)> {
             self.webAppAuthorizationCallback(req)
         }
         return authorizationCallback.flatMap { state, accessToken in
-            accessToken.convertToOAuthToken(
-                req: req,
-                issuer: self.issuer,
-                flow: .webAppFlow,
-                as: Token.self
-            ).map({ (state: state, token: $0) })
+            accessToken.saveToDb(req: req, oldToken: nil)
+                .map({ (state: state, token: $0) })
         }
     }
     
@@ -142,11 +122,11 @@ public extension WebAppFlowAuthorizable where Self: OAuthTokenConvertible {
     /// - Throws: OAuthableError in case of error.
     /// - Returns: A fresh token.
     func renewWebAppToken(_ req: Request, token: Token) -> EventLoopFuture<Token> {
-        var refreshTokenContent: EventLoopFuture<UserRefreshToken> {
+        var refreshTokenContent: EventLoopFuture<RetrievedToken> {
             self.renewWebAppToken(req, refreshToken: token.refreshToken)
         }
         let removeTokenIfRevoked = refreshTokenContent.flatMapAlways {
-            result -> EventLoopFuture<UserRefreshToken> in
+            result -> EventLoopFuture<RetrievedToken> in
             switch result {
             case let .success(token): return req.eventLoop.future(token)
             case let .failure(error):
@@ -161,7 +141,7 @@ public extension WebAppFlowAuthorizable where Self: OAuthTokenConvertible {
             }
         }
         let newToken = removeTokenIfRevoked.flatMap { refreshToken in
-            refreshToken.makeNewOAuthToken(req: req, flow: .webAppFlow, oldToken: token)
+            refreshToken.saveToDb(req: req, oldToken: token)
         }
         let deleteOldToken = newToken.flatMap { newToken in
             token.delete(on: req.db).map { _ in newToken }

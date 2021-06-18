@@ -37,7 +37,7 @@ extension ClientFlowAuthorizable {
     ///
     /// - Throws: OAuthableError in case of error.
     public func getAppAccessToken(_ req: Request, scopes: [Scopes] = [])
-    -> EventLoopFuture<AppAccessToken> {
+    -> EventLoopFuture<RetrievedToken> {
         let clientRequest = req.eventLoop.tryFuture {
             try self.appAccessTokenRequest(scopes: scopes)
         }
@@ -45,9 +45,12 @@ extension ClientFlowAuthorizable {
             req.client.send($0)
         }
         let tokenContent = clientResponse.flatMap { res in
-            decode(response: res, request: req, as: AppAccessToken.self)
+            decode(response: res, request: req, as: DecodedToken.self)
+        }
+        let retrievedToken = tokenContent.map {
+            $0.convertToRetrievedToken(issuer: self.issuer, flow: .clientCredentialsFlow)
         }
         
-        return tokenContent
+        return retrievedToken
     }
 }
