@@ -6,15 +6,15 @@
 **Here i'll assume you want `OAuthBM` to take of the tokens for you, and you are using the `OAuth authorization code flow`; as those two are the most common.**    
 **`OAuthBM` can also work without fluent and with both `OAuth implicit code flow` and `OAuth client credentials flow`.**
 
-* First make sure you have a table conforming to `OAuthTokenRepresentative`, `Model` and `Content` ready. You can find an example [here in tests](/Tests/OAuthBMTests/Preperation/OAuthToken%20Table.swift).   
+* First make sure you have a table conforming to `OAuthTokenRepresentative`, `Model` and `Content` ready. You can find an example [here in tests](/Tests/OAuthBMTests/Preparation/OAuthToken%20Table.swift).   
 As described in the documentations around [the `OAuthTokenRepresentative` protocol](/Sources/OAuthBM/OAuthTokenRepresentative.swift), the `initializeAndSave(request:token:oldToken:) -> ELF<Self>` func is an initializer that gives you more flexibility than a normal `init`,
 Meaning that you can take care of everything that is needed before a token is made, then `init` that token, save it on db, and pass it to `OAuthBM`.     
 * Make a type conforming to `OAuthable` and `OAuthTokenConvertible`. This type will be where you enter your provider's info.    
-Read [OAuthable's comments](/Sources/OAuthBM/OAuthable.swift) and take a look at [this example from tests](/Tests/OAuthBMTests/Preperation/TestProvider.swift) to have a feeling about what you should be doing.
+Read [OAuthable's comments](/Sources/OAuthBM/OAuthable.swift) and take a look at [this example from tests](/Tests/OAuthBMTests/Preparation/TestProvider.swift) to have a feeling about what you should be doing.
 
 ### Step 3: Setup your routes
 
-- Now you need to setup 2 routes. One for when users want to register, and one as the callback url which your provider will redirect your users to, after they give/dont-give your app premissions.    
-- What happens is, after hitting the register route, your users are redirected to your provider where they are asked to give you premissions, then they are reidrected back to your callback endpoint.   
+- Now you need to setup 2 routes. One for when users want to register, and one as the callback url which your provider will redirect your users to, after they give/don't-give your app permissions.    
+- What happens is, after hitting the register route, your users are redirected to your provider where they are asked to give you permissions, then they are redirected back to your callback endpoint.   
 The `authorizationCallback(_:)` func which you'll call in your callback endpoint will take care of everything and output the `state` and `token` to you so you can finish the job and send an appropriate message to your users.   
 - For examples, you can take a look [this file](/Tests/OAuthBMTests/OAuthBMTests.swift) in tests where the two routes are set-up.  

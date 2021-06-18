@@ -125,6 +125,7 @@ public extension WebAppFlowAuthorizable where Self: OAuthTokenConvertible {
         var refreshTokenContent: EventLoopFuture<RetrievedToken> {
             self.renewWebAppToken(req, refreshToken: token.refreshToken)
         }
+        #warning("remove this?!? (and the other one)")
         let removeTokenIfRevoked = refreshTokenContent.flatMapAlways {
             result -> EventLoopFuture<RetrievedToken> in
             switch result {
