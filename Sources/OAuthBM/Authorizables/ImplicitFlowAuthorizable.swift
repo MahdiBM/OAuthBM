@@ -3,7 +3,12 @@ import Vapor
 /// Protocol to enable `OAuth implicit code flow` actions
 ///
 /// `OAuth implicit code flow` is called `OAuth implicit grant flow` in some places.
-public protocol ImplicitFlowAuthorizable: OAuthable { }
+public protocol ImplicitFlowAuthorizable: OAuthable {
+    
+    /// For most providers use `true`, but for some providers like `Discord` you
+    /// need to use `false`. Refer to your provider's documentation for more info.
+    var implicitAuthorizationRequiresRedirectUrl: Bool { get }
+}
 
 extension ImplicitFlowAuthorizable {
     
@@ -13,10 +18,12 @@ extension ImplicitFlowAuthorizable {
         state: State,
         scopes: [Scopes] = Array(Scopes.allCases)
     ) -> String {
+        let redirectUri = implicitAuthorizationRequiresRedirectUrl ?
+        state.callbackUrl.rawValue : nil
         let queryParams = QueryParameters.init(
             clientId: self.clientId,
             responseType: .token,
-            redirectUri: state.callbackUrl.rawValue,
+            redirectUri: redirectUri,
             scope: joinScopes(scopes),
             state: state.description)
         let redirectUrl = self.providerAuthorizationUrl + "?" + queryParams.queryString
@@ -24,6 +31,9 @@ extension ImplicitFlowAuthorizable {
     }
     
     /// Redirects user to the provider page where they're asked to give this app permissions.
+    ///
+    /// `State`'s `callbackUrl` won't make any difference if you've
+    /// set `implicitAuthorizationRequiresRedirectUrl` to `false`.
     public func requestImplicitAuthorization(
         _ req: Request,
         state: State,

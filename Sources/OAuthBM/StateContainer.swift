@@ -64,7 +64,7 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
     }
 }
 
-/// MARK: - Equatable conformance
+//MARK: - Equatable conformance
 extension StateContainer: Equatable {
     public static func ==<A, B> (lhs: StateContainer<A>, rhs: StateContainer<B>) -> Bool {
         lhs.randomValue == rhs.randomValue &&
