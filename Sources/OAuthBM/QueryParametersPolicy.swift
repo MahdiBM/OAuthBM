@@ -29,41 +29,31 @@ public enum QueryParametersPolicy: String {
     }
 }
 
-/// The `response_type` of OAuth requests.
-///
-/// This is public because for `OAuth implicit code flow` most providers
-/// like `Twitch` require `ResponseType.token` and some other like `Discord`
-/// require `ResponseType.code`. So this needs to be set by users in some cases.
-public enum OAuthResponseType: String, Content {
-    case token = "token"
-    case code = "code"
-    
-    /// The value to use for `ImplicitFlowAuthorizable` requirement if you are unsure.
-    ///
-    /// Read your provider's documentations; they have 
-    /// most-likely mentioned which exact one to use.
-    static let `default`: Self = .token
-}
-
-/// The `grant_type` of OAuth requests.
-internal enum OAuthGrantType: String, Content {
-    case clientCredentials = "client_credentials"
-    case authorizationCode = "authorization_code"
-    case refreshToken = "refresh_token"
-}
-
 /// Helps encode query parameters into a request.
 internal struct QueryParameters {
     //MARK: Stuff that might need to be passed as query params into a OAuth-2 request.
     var clientId: String?
     var clientSecret: String?
-    var responseType: OAuthResponseType?
+    var responseType: ResponseType?
     var redirectUri: String?
     var scope: String?
     var state: String?
-    var grantType: OAuthGrantType?
+    var grantType: GrantType?
     var refreshToken: String?
     var code: String?
+    
+    /// The `response_type` of OAuth requests.
+    enum ResponseType: String, Content {
+        case token = "token"
+        case code = "code"
+    }
+    
+    /// The `grant_type` of OAuth requests.
+    enum GrantType: String, Content {
+        case clientCredentials = "client_credentials"
+        case authorizationCode = "authorization_code"
+        case refreshToken = "refresh_token"
+    }
     
     /// The pairs of key-values that can be passed into the url.
     /// 

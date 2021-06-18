@@ -3,15 +3,7 @@ import Vapor
 /// Protocol to enable `OAuth implicit code flow` actions
 ///
 /// `OAuth implicit code flow` is called `OAuth implicit grant flow` in some places.
-public protocol ImplicitFlowAuthorizable: OAuthable {
-    
-    /// `response_type` of the implicit authorization requests.
-    ///
-    /// Most providers like `Twitch` require `OAuthResponseType.token` and some other like `Discord`
-    /// require `OAuthResponseType.code`. Use `.default` if you are unsure. Read your provider's
-    /// documentations and they have most-likely mentioned which exact one to use.
-    var implicitAuthorizationResponseType: OAuthResponseType { get }
-}
+public protocol ImplicitFlowAuthorizable: OAuthable { }
 
 extension ImplicitFlowAuthorizable {
     
@@ -23,7 +15,7 @@ extension ImplicitFlowAuthorizable {
     ) -> String {
         let queryParams = QueryParameters.init(
             clientId: self.clientId,
-            responseType: self.implicitAuthorizationResponseType,
+            responseType: .token,
             redirectUri: state.callbackUrl.rawValue,
             scope: joinScopes(scopes),
             state: state.description)
