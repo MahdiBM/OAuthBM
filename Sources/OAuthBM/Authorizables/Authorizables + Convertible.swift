@@ -172,9 +172,9 @@ public extension WebAppFlowAuthorizable where Self: OAuthTokenConvertible {
     }
 }
 
-//MARK: - TokenRevocable + OAuthTokenConvertible
+//MARK: - OAuthTokenRevocable + OAuthTokenConvertible
 
-extension TokenRevocable where Self: OAuthTokenConvertible {
+extension OAuthTokenRevocable where Self: OAuthTokenConvertible {
     
     /// Immediately tries to revoke the token.
     /// Deletes the token from db in case of success.
