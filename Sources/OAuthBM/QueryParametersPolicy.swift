@@ -41,6 +41,7 @@ internal struct QueryParameters {
     var grantType: GrantType?
     var refreshToken: String?
     var code: String?
+    var token: String?
     
     /// The `response_type` of OAuth requests.
     enum ResponseType: String, Content {
@@ -60,19 +61,20 @@ internal struct QueryParameters {
     /// example: ["key1=value1", "key2=value2"]
     private var queryStrings: [String] {
         var allValues = [String?]()
-        func append(value: String?, key: CodingKeys) {
+        func append(_ value: String?, key: CodingKeys) {
             let keyValue = (value == nil) ? nil : "\(key.rawValue)=\(value!)"
             allValues.append(keyValue)
         }
-        append(value: self.clientId, key: .clientId)
-        append(value: self.clientSecret, key: .clientSecret)
-        append(value: self.responseType?.rawValue, key: .responseType)
-        append(value: self.redirectUri, key: .redirectUri)
-        append(value: self.scope, key: .scope)
-        append(value: self.state, key: .state)
-        append(value: self.grantType?.rawValue, key: .grantType)
-        append(value: self.refreshToken, key: .refreshToken)
-        append(value: self.code, key: .code)
+        append(self.clientId, key: .clientId)
+        append(self.clientSecret, key: .clientSecret)
+        append(self.responseType?.rawValue, key: .responseType)
+        append(self.redirectUri, key: .redirectUri)
+        append(self.scope, key: .scope)
+        append(self.state, key: .state)
+        append(self.grantType?.rawValue, key: .grantType)
+        append(self.refreshToken, key: .refreshToken)
+        append(self.code, key: .code)
+        append(self.token, key: .token)
         
         return allValues.compactMap { $0 }
     }
@@ -96,5 +98,6 @@ extension QueryParameters: Content {
         case grantType = "grant_type"
         case refreshToken = "refresh_token"
         case code = "code"
+        case token = "token"
     }
 }

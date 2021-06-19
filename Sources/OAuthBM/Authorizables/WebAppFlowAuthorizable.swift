@@ -5,6 +5,8 @@ public protocol WebAppFlowAuthorizable: OAuthable { }
 
 extension WebAppFlowAuthorizable {
     
+    //MARK: - Authorization
+    
     /// The url to redirect user to,
     /// so they are asked to give this app permissions to access their data.
     ///
@@ -14,7 +16,7 @@ extension WebAppFlowAuthorizable {
             clientId: self.clientId,
             redirectUri: state.callbackUrl.rawValue,
             state: state.description)
-        let redirectUrl = self.providerAuthorizationUrl + "?" + queryParams.queryString
+        let redirectUrl = self.authorizationUrl + "?" + queryParams.queryString
         return redirectUrl
     }
     
@@ -86,6 +88,8 @@ extension WebAppFlowAuthorizable {
         return stateAndToken
     }
     
+    //MARK: - Token Request
+    
     /// The request that gets an access token from the provider,
     /// using the `code` that this app should acquired after
     /// user being redirected to this app by the provider.
@@ -101,7 +105,7 @@ extension WebAppFlowAuthorizable {
             code: code)
         var clientRequest = ClientRequest()
         clientRequest.method = .POST
-        clientRequest.url = .init(string: self.providerTokenUrl)
+        clientRequest.url = .init(string: self.tokenUrl)
         
         let queryParametersEncode: Void? = try? self.queryParametersPolicy
             .inject(parameters: queryParams, into: &clientRequest)
@@ -115,6 +119,8 @@ extension WebAppFlowAuthorizable {
         return clientRequest
     }
     
+    //MARK: - Refreshing Tokens
+    
     /// The request to refresh an expired token with.
     ///
     /// - Throws: OAuthableError in case of error.
@@ -126,7 +132,7 @@ extension WebAppFlowAuthorizable {
             refreshToken: refreshToken)
         var clientRequest = ClientRequest()
         clientRequest.method = .POST
-        clientRequest.url = .init(string: self.providerTokenUrl)
+        clientRequest.url = .init(string: self.tokenUrl)
         
         let queryParametersEncode: Void? = try? self.queryParametersPolicy
             .inject(parameters: queryParams, into: &clientRequest)
@@ -144,7 +150,7 @@ extension WebAppFlowAuthorizable {
     ///
     /// - Throws: OAuthableError in case of error.
     /// - Returns: A fresh token.
-    public func renewWebAppToken(_ req: Request, refreshToken: String)
+    public func refreshWebAppToken(_ req: Request, refreshToken: String)
     -> EventLoopFuture<RetrievedToken> {
         let clientRequest = req.eventLoop.tryFuture {
             try self.webAppRefreshTokenRequest(refreshToken: refreshToken)

@@ -31,11 +31,11 @@ public protocol OAuthable {
     
     /// Provider's endpoint that you redirect users to,
     /// so they are asked to give permissions to this app.
-    var providerAuthorizationUrl: String { get }
+    var authorizationUrl: String { get }
     
     /// After getting a `code` from the provider when a user has given permissions to this app,
     /// The `code` is passed to this url and in return, an `access token` is acquired.
-    var providerTokenUrl: String { get }
+    var tokenUrl: String { get }
     
     /// The policy to encode query parameters with.
     var queryParametersPolicy: Policy { get }

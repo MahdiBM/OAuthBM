@@ -1,9 +1,15 @@
 import Vapor
 
 /// Protocol to enable `OAuth authorization code flow` actions
-public protocol ExplicitFlowAuthorizable: OAuthable { }
+public protocol ExplicitFlowAuthorizable: OAuthable {
+    
+    /// Provider's endpoint to revoke access tokens with.
+    var revocationUrl: String { get }
+}
 
 extension ExplicitFlowAuthorizable {
+    
+    //MARK: - Authorization
     
     /// The url to redirect user to,
     /// so they are asked to give this app permissions to access their data.
@@ -19,7 +25,7 @@ extension ExplicitFlowAuthorizable {
             redirectUri: state.callbackUrl.rawValue,
             scope: joinScopes(scopes),
             state: state.description)
-        let redirectUrl = self.providerAuthorizationUrl + "?" + queryParams.queryString
+        let redirectUrl = self.authorizationUrl + "?" + queryParams.queryString
         return redirectUrl
     }
     
@@ -92,6 +98,8 @@ extension ExplicitFlowAuthorizable {
         return stateAndToken
     }
     
+    //MARK: - Token Request
+    
     /// The request that gets an access token from the provider,
     /// using the `code` that this app should acquired after
     /// user being redirected to this app by the provider.
@@ -107,7 +115,7 @@ extension ExplicitFlowAuthorizable {
             code: code)
         var clientRequest = ClientRequest()
         clientRequest.method = .POST
-        clientRequest.url = .init(string: self.providerTokenUrl)
+        clientRequest.url = .init(string: self.tokenUrl)
         
         let queryParametersEncode: Void? = try? self.queryParametersPolicy
             .inject(parameters: queryParams, into: &clientRequest)
@@ -121,6 +129,8 @@ extension ExplicitFlowAuthorizable {
         return clientRequest
     }
     
+    //MARK: - Refreshing Tokens
+    
     /// The request to refresh an expired token with.
     ///
     /// - Throws: OAuthableError in case of error.
@@ -132,7 +142,7 @@ extension ExplicitFlowAuthorizable {
             refreshToken: refreshToken)
         var clientRequest = ClientRequest()
         clientRequest.method = .POST
-        clientRequest.url = .init(string: self.providerTokenUrl)
+        clientRequest.url = .init(string: self.tokenUrl)
         
         let queryParametersEncode: Void? = try? self.queryParametersPolicy
             .inject(parameters: queryParams, into: &clientRequest)
@@ -150,7 +160,7 @@ extension ExplicitFlowAuthorizable {
     ///
     /// - Throws: OAuthableError in case of error.
     /// - Returns: A fresh token.
-    public func renewToken(_ req: Request, refreshToken: String)
+    public func refreshToken(_ req: Request, refreshToken: String)
     -> EventLoopFuture<RetrievedToken> {
         let clientRequest = req.eventLoop.tryFuture {
             try self.refreshTokenRequest(refreshToken: refreshToken)
@@ -166,5 +176,60 @@ extension ExplicitFlowAuthorizable {
         }
         return retrievedToken
     }
+    
+    //MARK: - Revoking Tokens
+    
+    /// The request to revoke a token with.
+    ///
+    /// - Throws: OAuthableError in case of error.
+    private func revokeTokenRequest(accessToken: String) throws -> ClientRequest {
+        let queryParams = QueryParameters.init(
+            clientId: self.clientId,
+            token: accessToken)
+        var clientRequest = ClientRequest()
+        clientRequest.method = .POST
+        clientRequest.url = .init(string: self.revocationUrl)
+        
+        let queryParametersEncode: Void? = try? self.queryParametersPolicy
+            .inject(parameters: queryParams, into: &clientRequest)
+        guard queryParametersEncode != nil else {
+            throw OAuthableError.serverError(
+                status: .preconditionFailed,
+                error: .queryParametersEncode(policy: queryParametersPolicy)
+            )
+        }
+        
+        return clientRequest
+    }
+    
+    /// Immediately tries to revoke the token.
+    ///
+    /// - Throws: OAuthableError in case of error.
+    /// - Returns: A Void signal indicating success.
+    public func revokeToken(_ req: Request, accessToken: String) -> EventLoopFuture<Void> {
+        let clientRequest = req.eventLoop.tryFuture {
+            try self.revokeTokenRequest(accessToken: accessToken)
+        }
+        let clientResponse = clientRequest.flatMap {
+            req.client.send($0)
+        }
+        let errorsHandled = clientResponse.flatMapAlways {
+            result -> EventLoopFuture<Void> in
+            switch result {
+            case let .success(response):
+                switch response.status {
+                case .ok: return req.eventLoop.future()
+                default:
+                    let error = decodeError(req: req, res: response)
+                    return req.eventLoop.future(error: error)
+                }
+            case let .failure(error):
+                return req.eventLoop.future(error: error)
+            }
+        }
+        
+        return errorsHandled
+    }
+    
 }
 

@@ -2,7 +2,7 @@ import OAuthBM
 
 /// For clarification, this provider won't work in a real app unless
 /// You replace `clientId`, `clientSecret` and `CallbackUrls` with real values.
-/// `providerAuthorizationUrl`, `providerTokenUrl` and `Scopes` are
+/// `authorizationUrl`, `tokenUrl` and `Scopes` are
 /// `Twitch` specific values and if you're using this for any other provider,
 /// you must enter the correct values for them yourself.
 

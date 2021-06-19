@@ -1,9 +1,9 @@
 import Vapor
 
-// ExplicitFlowAuthorizable + OAuthTokenConvertible
+//MARK: - ExplicitFlowAuthorizable + OAuthTokenConvertible
 
 public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
-
+    
     /// Takes care of callback endpoint's actions,
     /// after the user hits the authorization endpoint
     /// and gets redirected back to this app by the provider.
@@ -27,9 +27,9 @@ public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
     ///
     /// - Throws: OAuthableError in case of error.
     /// - Returns: A fresh token.
-    func renewToken(_ req: Request, token: Token) -> EventLoopFuture<Token> {
+    func refreshToken(_ req: Request, token: Token) -> EventLoopFuture<Token> {
         var refreshTokenContent: EventLoopFuture<RetrievedToken> {
-            self.renewToken(req, refreshToken: token.refreshToken)
+            self.refreshToken(req, refreshToken: token.refreshToken)
         }
         let removeTokenIfRevoked = refreshTokenContent.flatMapAlways {
             result -> EventLoopFuture<RetrievedToken> in
@@ -56,16 +56,16 @@ public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
         return deleteOldToken.map { $0 }
     }
     
-    /// Renew's the token if needed.
+    /// Refreshes the token if needed.
     ///
     /// - Returns: The same token if not expired, otherwise a fresh token.
-    func renewTokenIfExpired(_ req: Request, token: Token) -> EventLoopFuture<Token> {
+    func refreshTokenIfExpired(_ req: Request, token: Token) -> EventLoopFuture<Token> {
         if token.tokenHasExpired && token.tokenIsRefreshable {
             req.logger.trace("Token has expired. Will try to acquire new one.", metadata: [
                 "type": .string("\(Self.self)"),
                 "token": .stringConvertible(token),
             ])
-            return renewToken(req, token: token)
+            return refreshToken(req, token: token)
         } else {
             req.logger.trace("Token has not expired. Will return the current token.", metadata: [
                 "type": .string("\(Self.self)"),
@@ -74,11 +74,26 @@ public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
             return req.eventLoop.future(token)
         }
     }
+    
+    /// Immediately tries to revoke the token.
+    /// Deletes the token from db in case of success.
+    ///
+    /// - Throws: OAuthableError in case of error.
+    /// - Returns: A Void signal indicating success.
+    func revokeToken(_ req: Request, token: Token) -> EventLoopFuture<Void> {
+        let revocation = self.revokeToken(req, accessToken: token.accessToken)
+        let deletion = revocation.flatMap {
+            token.delete(on: req.db)
+        }
+        
+        return deletion
+    }
 }
 
-// ClientFlowAuthorizable + OAuthTokenConvertible
+//MARK: - ClientFlowAuthorizable + OAuthTokenConvertible
 
 public extension ClientFlowAuthorizable where Self: OAuthTokenConvertible {
+    
     /// Tries to acquire an app access token.
     ///
     /// - Throws: OAuthableError in case of error.
@@ -94,7 +109,7 @@ public extension ClientFlowAuthorizable where Self: OAuthTokenConvertible {
     }
 }
 
-// WebAppFlowAuthorizable + OAuthTokenConvertible
+//MARK: - WebAppFlowAuthorizable + OAuthTokenConvertible
 
 public extension WebAppFlowAuthorizable where Self: OAuthTokenConvertible {
     
@@ -121,9 +136,9 @@ public extension WebAppFlowAuthorizable where Self: OAuthTokenConvertible {
     ///
     /// - Throws: OAuthableError in case of error.
     /// - Returns: A fresh token.
-    func renewWebAppToken(_ req: Request, token: Token) -> EventLoopFuture<Token> {
+    func refreshWebAppToken(_ req: Request, token: Token) -> EventLoopFuture<Token> {
         var refreshTokenContent: EventLoopFuture<RetrievedToken> {
-            self.renewWebAppToken(req, refreshToken: token.refreshToken)
+            self.refreshWebAppToken(req, refreshToken: token.refreshToken)
         }
         #warning("remove this?!? (and the other one)")
         let removeTokenIfRevoked = refreshTokenContent.flatMapAlways {
@@ -151,16 +166,16 @@ public extension WebAppFlowAuthorizable where Self: OAuthTokenConvertible {
         return deleteOldToken.map { $0 }
     }
     
-    /// Renew's the token if needed.
+    /// Refreshes the token if needed.
     ///
     /// - Returns: The same token if not expired, otherwise a fresh token.
-    func renewWebAppTokenIfExpired(_ req: Request, token: Token) -> EventLoopFuture<Token> {
+    func refreshWebAppTokenIfExpired(_ req: Request, token: Token) -> EventLoopFuture<Token> {
         if token.tokenHasExpired {
             req.logger.trace("Token has expired. Will try to acquire new one.", metadata: [
                 "type": .string("\(Self.self)"),
                 "token": .stringConvertible(token),
             ])
-            return renewWebAppToken(req, token: token)
+            return refreshWebAppToken(req, token: token)
         } else {
             req.logger.trace("Token has not expired. Will return the current token.", metadata: [
                 "type": .string("\(Self.self)"),

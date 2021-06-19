@@ -16,7 +16,7 @@ extension ClientFlowAuthorizable {
             grantType: .clientCredentials)
         var clientRequest = ClientRequest()
         clientRequest.method = .POST
-        clientRequest.url = .init(string: self.providerTokenUrl)
+        clientRequest.url = .init(string: self.tokenUrl)
         
         let queryParametersEncode: Void? = try? self.queryParametersPolicy
             .inject(parameters: queryParams, into: &clientRequest)
