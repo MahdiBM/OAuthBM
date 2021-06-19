@@ -177,7 +177,7 @@ extension OAuthableError {
         fileprivate var errorDescription: String {
             switch self {
             case .unknown(let errorString): return "[UNKNOWN: \(errorString ?? "NIL")]"
-            default: return "[error: \(self.rawValue), reason: \(self.description)]"
+            default: return "[error: \(self.rawValue), description: \(self.description)]"
             }
         }
         

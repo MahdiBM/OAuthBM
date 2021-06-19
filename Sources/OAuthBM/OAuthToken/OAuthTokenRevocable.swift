@@ -15,6 +15,7 @@ extension OAuthTokenRevocable {
     private func revokeTokenRequest(accessToken: String) throws -> ClientRequest {
         let queryParams = QueryParameters.init(
             clientId: self.clientId,
+            clientSecret: self.clientSecret,
             token: accessToken)
         var clientRequest = ClientRequest()
         clientRequest.method = .POST

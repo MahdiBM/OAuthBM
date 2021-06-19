@@ -1,5 +1,7 @@
 import Vapor
 
+//Protocol extensions `where Self: OAuthTokenConvertible`
+
 //MARK: - ExplicitFlowAuthorizable + OAuthTokenConvertible
 
 public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
