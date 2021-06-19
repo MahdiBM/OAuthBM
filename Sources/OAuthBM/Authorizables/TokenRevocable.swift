@@ -1,13 +1,13 @@
 import Vapor
 
 /// Protocol to enable token revocations.
-public protocol Revokable: OAuthable {
+public protocol TokenRevocable: OAuthable {
     
     /// Provider's endpoint to revoke access tokens with.
     var revocationUrl: String { get }
 }
 
-extension Revokable {
+extension TokenRevocable {
     
     /// The request to revoke a token with.
     ///
