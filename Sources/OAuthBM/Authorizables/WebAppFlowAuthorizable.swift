@@ -15,7 +15,7 @@ extension WebAppFlowAuthorizable {
         let queryParams = QueryParameters.init(
             clientId: self.clientId,
             redirectUri: state.callbackUrl.rawValue,
-            state: state.description)
+            state: state.value)
         let redirectUrl = self.authorizationUrl + "?" + queryParams.queryString
         return redirectUrl
     }
@@ -52,13 +52,13 @@ extension WebAppFlowAuthorizable {
             "type": .string("\(Self.self)")
         ])
         
-        guard let stateString = req.query[String.self, at: "state"] else {
+        guard let stateValue = req.query[[String].self, at: "state"] else {
             return req.eventLoop.future(error: decodeError(req: req, res: nil))
         }
         let state: State
         do {
             state = try State.extractFrom(session: req.session)
-            let urlState = try State(decodeFrom: stateString)
+            let urlState = try State(decodeFrom: stateValue)
             req.session.destroy()
             guard state == urlState
             else { throw OAuthableError.serverError(error: .invalidCookie) }
@@ -101,7 +101,7 @@ extension WebAppFlowAuthorizable {
             clientId: self.clientId,
             clientSecret: self.clientSecret,
             redirectUri: state.callbackUrl.rawValue,
-            state: state.description,
+            state: state.value,
             code: code)
         var clientRequest = ClientRequest()
         clientRequest.method = .POST

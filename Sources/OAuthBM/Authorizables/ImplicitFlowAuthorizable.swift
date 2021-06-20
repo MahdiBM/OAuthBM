@@ -18,7 +18,7 @@ extension ImplicitFlowAuthorizable {
             responseType: .token,
             redirectUri: state.callbackUrl.rawValue,
             scope: joinScopes(scopes),
-            state: state.description)
+            state: state.value)
         let redirectUrl = self.authorizationUrl + "?" + queryParams.queryString
         return redirectUrl
     }

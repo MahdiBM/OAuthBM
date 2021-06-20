@@ -20,7 +20,7 @@ extension ExplicitFlowAuthorizable {
             responseType: .code,
             redirectUri: state.callbackUrl.rawValue,
             scope: joinScopes(scopes),
-            state: state.description)
+            state: state.value)
         let redirectUrl = self.authorizationUrl + "?" + queryParams.queryString
         return redirectUrl
     }
@@ -58,13 +58,13 @@ extension ExplicitFlowAuthorizable {
             "type": .string("\(Self.self)")
         ])
         
-        guard let stateString = req.query[String.self, at: "state"] else {
+        guard let stateValue = req.query[[String].self, at: "state"] else {
             return req.eventLoop.future(error: decodeError(req: req, res: nil))
         }
         let state: State
         do {
             state = try State.extractFrom(session: req.session)
-            let urlState = try State(decodeFrom: stateString)
+            let urlState = try State(decodeFrom: stateValue)
             req.session.destroy()
             guard state == urlState
             else { throw OAuthableError.serverError(error: .invalidCookie) }

@@ -1,9 +1,5 @@
 import Vapor
 
-/// Separator between values in ``StateContainer/description``.
-/// Can't put it in the ``StateContainer`` itself since it's generic.
-private let separator = ",,,"
-
 /// Container of State-related stuff.
 public struct StateContainer<CallbackUrls>
 where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
@@ -15,9 +11,9 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
     /// Random value to make this state unpredictable.
     internal let randomValue: String
     
-    /// String representation of the container.
-    var description: String {
-        [customValue, callbackUrl.rawValue, randomValue].joined(separator: separator)
+    /// The value to be used for HTTP requests.
+    var value: [String] {
+        [customValue, callbackUrl.rawValue, randomValue]
     }
     
     internal init(customValue: String, callbackUrl: CallbackUrls, randomValue: String) {
@@ -53,15 +49,14 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
         )
     }
     
-    internal init(decodeFrom description: String) throws {
-        let comps = description.components(separatedBy: separator)
-        guard comps.count == 3, let callbackUrl = CallbackUrls(rawValue: comps[1]) else {
+    internal init(decodeFrom value: [String]) throws {
+        guard value.count == 3, let callbackUrl = CallbackUrls(rawValue: value[1]) else {
             throw OAuthableError.serverError(
-                status: .badRequest, error: .stateDecode(state: description))
+                status: .badRequest, error: .stateDecode(state: value.joined(separator: ", ")))
         }
-        self.customValue = comps[0]
+        self.customValue = value[0]
         self.callbackUrl = callbackUrl
-        self.randomValue = comps[2]
+        self.randomValue = value[2]
     }
 }
 

@@ -37,7 +37,7 @@ internal struct QueryParameters {
     var responseType: ResponseType?
     var redirectUri: String?
     var scope: String?
-    var state: String?
+    var state: [String]?
     var grantType: GrantType?
     var refreshToken: String?
     var code: String?
@@ -70,7 +70,7 @@ internal struct QueryParameters {
         append(self.responseType?.rawValue, key: .responseType)
         append(self.redirectUri, key: .redirectUri)
         append(self.scope, key: .scope)
-        append(self.state, key: .state)
+        append(self.state?.joined(separator: ","), key: .state)
         append(self.grantType?.rawValue, key: .grantType)
         append(self.refreshToken, key: .refreshToken)
         append(self.code, key: .code)
