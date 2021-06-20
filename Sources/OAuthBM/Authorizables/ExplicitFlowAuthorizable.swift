@@ -58,7 +58,7 @@ extension ExplicitFlowAuthorizable {
             "type": .string("\(Self.self)")
         ])
         
-        guard let stateValue = req.query[[String].self, at: "state"] else {
+        guard let stateValue = req.query[String.self, at: "state"] else {
             return req.eventLoop.future(error: decodeError(req: req, res: nil))
         }
         let state: State

@@ -49,29 +49,18 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
         )
     }
     
-    internal init(decodeFrom value: [String]) throws {
-        let count = value.count
-        var error: OAuthableError {
+    internal init(decodeFrom valueDescription: String) throws {
+        let value = valueDescription.components(separatedBy: ",")
+        
+        guard value.count == 3, let callbackUrl = CallbackUrls(rawValue: value[1]) else {
             let stateDesc = value.joined(separator: ", ").debugDescription
-            return .serverError(status: .badRequest, error: .stateDecode(state: stateDesc))
+            throw OAuthableError
+            .serverError(status: .badRequest, error: .stateDecode(state: stateDesc))
         }
-        if count == 3 {
-            guard let callbackUrl = CallbackUrls(rawValue: value[1]) else {
-                throw error
-            }
-            self.customValue = value[0]
-            self.callbackUrl = callbackUrl
-            self.randomValue = value[2]
-        } else if count == 2 {
-            guard let callbackUrl = CallbackUrls(rawValue: value[0]) else {
-                throw error
-            }
-            self.customValue = ""
-            self.callbackUrl = callbackUrl
-            self.randomValue = value[1]
-        } else {
-            throw error
-        }
+        
+        self.customValue = value[0]
+        self.callbackUrl = callbackUrl
+        self.randomValue = value[2]
     }
 }
 
