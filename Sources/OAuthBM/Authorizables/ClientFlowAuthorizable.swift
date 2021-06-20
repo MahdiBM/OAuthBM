@@ -1,7 +1,7 @@
 import Vapor
 
 /// Protocol to enable `OAuth client credentials flow` actions
-public protocol ClientFlowAuthorizable: OAuthable { }
+public protocol ClientFlowAuthorizable: OAuthable, OAuthTokenBasicAuthRequirement { }
 
 extension ClientFlowAuthorizable {
     
@@ -18,9 +18,10 @@ extension ClientFlowAuthorizable {
         clientRequest.method = .POST
         clientRequest.url = .init(string: self.tokenUrl)
         
-        let queryParametersEncode: Void? = try? self.queryParametersPolicy
-            .inject(parameters: queryParams, into: &clientRequest)
-        guard queryParametersEncode != nil else {
+        injectBasicAuthHeadersIfNeeded(to: &clientRequest)
+        do {
+            try self.queryParametersPolicy.inject(parameters: queryParams, into: &clientRequest)
+        } catch {
             throw OAuthableError.serverError(
                 status: .preconditionFailed,
                 error: .queryParametersEncode(policy: queryParametersPolicy)

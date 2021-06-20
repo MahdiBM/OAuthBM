@@ -1,5 +1,9 @@
 import Vapor
 
+/// Separator between values in ``StateContainer/description``.
+/// Can't put it in the ``StateContainer`` itself since it's generic.
+private let separator = ",,,"
+
 /// Container of State-related stuff.
 public struct StateContainer<CallbackUrls>
 where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
@@ -10,9 +14,6 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
     public let callbackUrl: CallbackUrls
     /// Random value to make this state unpredictable.
     internal let randomValue: String
-    
-    /// Separator between values in `description`.
-    internal let separator = ",,,"
     
     /// String representation of the container.
     var description: String {
@@ -53,7 +54,7 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
     }
     
     internal init(decodeFrom description: String) throws {
-        let comps = description.components(separatedBy: ",,,")
+        let comps = description.components(separatedBy: separator)
         guard comps.count == 3, let callbackUrl = CallbackUrls(rawValue: comps[1]) else {
             throw OAuthableError.serverError(
                 status: .badRequest, error: .stateDecode(state: description))

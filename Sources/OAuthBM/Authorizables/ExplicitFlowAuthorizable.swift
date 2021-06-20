@@ -1,7 +1,7 @@
 import Vapor
 
 /// Protocol to enable `OAuth authorization code flow` actions
-public protocol ExplicitFlowAuthorizable: OAuthable { }
+public protocol ExplicitFlowAuthorizable: OAuthable, OAuthTokenBasicAuthRequirement { }
 
 extension ExplicitFlowAuthorizable {
     
@@ -94,7 +94,7 @@ extension ExplicitFlowAuthorizable {
         return stateAndToken
     }
     
-    //MARK: - Token Request
+    //MARK: - Code to Token Request
     
     /// The request that gets an access token from the provider,
     /// using the `code` that this app should acquired after
@@ -113,9 +113,10 @@ extension ExplicitFlowAuthorizable {
         clientRequest.method = .POST
         clientRequest.url = .init(string: self.tokenUrl)
         
-        let queryParametersEncode: Void? = try? self.queryParametersPolicy
-            .inject(parameters: queryParams, into: &clientRequest)
-        guard queryParametersEncode != nil else {
+        injectBasicAuthHeadersIfNeeded(to: &clientRequest)
+        do {
+            try self.queryParametersPolicy.inject(parameters: queryParams, into: &clientRequest)
+        } catch {
             throw OAuthableError.serverError(
                 status: .preconditionFailed,
                 error: .queryParametersEncode(policy: queryParametersPolicy)
@@ -140,9 +141,10 @@ extension ExplicitFlowAuthorizable {
         clientRequest.method = .POST
         clientRequest.url = .init(string: self.tokenUrl)
         
-        let queryParametersEncode: Void? = try? self.queryParametersPolicy
-            .inject(parameters: queryParams, into: &clientRequest)
-        guard queryParametersEncode != nil else {
+        injectBasicAuthHeadersIfNeeded(to: &clientRequest)
+        do {
+            try self.queryParametersPolicy.inject(parameters: queryParams, into: &clientRequest)
+        } catch {
             throw OAuthableError.serverError(
                 status: .preconditionFailed,
                 error: .queryParametersEncode(policy: queryParametersPolicy)

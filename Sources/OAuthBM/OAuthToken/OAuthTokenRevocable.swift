@@ -1,7 +1,7 @@
 import Vapor
 
 /// Protocol to enable token revocations.
-public protocol OAuthTokenRevocable: OAuthable {
+public protocol OAuthTokenRevocable: OAuthable, OAuthTokenBasicAuthRequirement {
     
     /// Provider's endpoint to revoke access tokens with.
     var revocationUrl: String { get }
@@ -21,9 +21,10 @@ extension OAuthTokenRevocable {
         clientRequest.method = .POST
         clientRequest.url = .init(string: self.revocationUrl)
         
-        let queryParametersEncode: Void? = try? self.queryParametersPolicy
-            .inject(parameters: queryParams, into: &clientRequest)
-        guard queryParametersEncode != nil else {
+        injectBasicAuthHeadersIfNeeded(to: &clientRequest)
+        do {
+            try self.queryParametersPolicy.inject(parameters: queryParams, into: &clientRequest)
+        } catch {
             throw OAuthableError.serverError(
                 status: .preconditionFailed,
                 error: .queryParametersEncode(policy: queryParametersPolicy)

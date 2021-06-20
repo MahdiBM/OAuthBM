@@ -1,7 +1,7 @@
 import Vapor
 import Fluent
 
-/// Enables OAuth-2 tasks.
+/// Basic OAuth-2 requirements.
 public protocol OAuthable {
     
     /// The State container type.
@@ -45,6 +45,7 @@ public protocol OAuthable {
 }
 
 //MARK: - Extra declarations
+
 extension OAuthable {
     /// All joined in a form to be used in a HTTP request.
     internal func joinScopes(_ scopes: [Scopes]) -> String {
@@ -53,6 +54,7 @@ extension OAuthable {
 }
 
 //MARK: - Decoders
+
 extension OAuthable {
     /// Decodes response's content while taking care of errors.
     /// - Throws: OAuthableError in case of error.
@@ -78,8 +80,7 @@ extension OAuthable {
     internal func decodeErrorIfAvailable(req: Request, res: ClientResponse?) -> OAuthableError? {
         if let queryError = QueryError.extractOAuthError(from: req) {
             return queryError
-        } else if let res = res,
-                  let contentError = ContentError.extractOAuthError(from: res) {
+        } else if let res = res, let contentError = ContentError.extractOAuthError(from: res) {
             return contentError
         }
         return nil
@@ -131,13 +132,7 @@ private struct ContentError: Decodable {
 }
 
 private struct QueryError: Decodable {
-    private let error: String
-    private let errorDescription: String
-    
-    enum CodingKeys: String, CodingKey {
-        case error = "error"
-        case errorDescription = "error_description"
-    }
+    let error: String
     
     static func extractOAuthError(from req: Request) -> OAuthableError? {
         guard let value = try? req.query.decode(Self.self),
