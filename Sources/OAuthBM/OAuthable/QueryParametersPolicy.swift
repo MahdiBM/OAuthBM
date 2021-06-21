@@ -7,12 +7,12 @@
 /// or throws weird errors, then you should try using `.useUrlEncodedForm`.
 public enum QueryParametersPolicy: String {
     /// Encodes parameters as query strings.
-    case passInUrl
+    case useQueryStrings
     /// Encodes parameters as url-encoded form.
     case useUrlEncodedForm
     
     /// The value to use if you are unsure.
-    static let `default`: Self = .passInUrl
+    static let `default`: Self = .useQueryStrings
     
     /// Injects parameters into a client request.
     internal func inject(
@@ -20,7 +20,7 @@ public enum QueryParametersPolicy: String {
         into clientRequest: inout ClientRequest
     ) throws {
         switch self {
-        case .passInUrl:
+        case .useQueryStrings:
             try clientRequest.query.encode(parameters)
         case .useUrlEncodedForm:
             try clientRequest.content.encode(parameters, as: .urlEncodedForm)

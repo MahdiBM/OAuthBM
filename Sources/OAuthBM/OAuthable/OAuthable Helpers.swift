@@ -14,7 +14,7 @@ extension OAuthable {
     
     /// Extracts `state` from `Session` and `Request`
     /// and makes sure they are valid an match each-other.
-    func extractAndValidateState(req: Request) throws -> State {
+    internal func extractAndValidateState(req: Request) throws -> State {
         let state: State
         do {
             state = try State.extract(from: req.session)
