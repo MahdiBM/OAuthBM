@@ -1,4 +1,3 @@
-import Vapor
 
 /// Protocol to enable token revocations.
 public protocol OAuthTokenRevocable: OAuthable, OAuthTokenBasicAuthRequirement {

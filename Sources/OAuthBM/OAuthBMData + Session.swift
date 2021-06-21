@@ -1,6 +1,5 @@
-import Vapor
 
-//MARK: - ``SessionData`` extension
+//MARK: - ``SessionData`` extension.
 public extension SessionData {
     var oauthbm: OAuthBMSessionData {
         .init(session: self)

@@ -1,7 +1,6 @@
-import Vapor
 
 /// Protocol to enable `OAuth authorization code flow` actions
-public protocol ExplicitFlowAuthorizable: OAuthable, OAuthTokenBasicAuthRequirement, StateSecure { }
+public protocol ExplicitFlowAuthorizable: OAuthable, OAuthTokenBasicAuthRequirement { }
 
 extension ExplicitFlowAuthorizable {
     

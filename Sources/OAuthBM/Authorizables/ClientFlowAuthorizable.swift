@@ -1,4 +1,3 @@
-import Vapor
 
 /// Protocol to enable `OAuth client credentials flow` actions
 public protocol ClientFlowAuthorizable: OAuthable, OAuthTokenBasicAuthRequirement { }

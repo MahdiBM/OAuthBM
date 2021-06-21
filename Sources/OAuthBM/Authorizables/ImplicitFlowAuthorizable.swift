@@ -1,4 +1,3 @@
-import Vapor
 
 /// Protocol to enable `OAuth implicit code flow` actions
 ///

@@ -1,5 +1,4 @@
 import Fluent
-import Vapor
 
 /// Represents a type which has all necessary requirements of an OAuth-2 access token.
 public protocol OAuthTokenRepresentative {

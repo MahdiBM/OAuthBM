@@ -1,4 +1,3 @@
-import Vapor
 
 public protocol OAuthTokenBasicAuthRequirement {
     

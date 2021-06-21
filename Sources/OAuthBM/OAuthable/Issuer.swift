@@ -1,4 +1,3 @@
-import Vapor
 
 /// The issuer of an oauth token.
 ///
@@ -29,7 +28,7 @@ extension Issuer: Codable {
     }
 }
 
-/// StringConvertible conformance.
+/// `StringConvertible` conformances.
 extension Issuer: CustomStringConvertible, CustomDebugStringConvertible {
     public var description: String { rawValue }
     public var debugDescription: String { .init(reflecting: rawValue) }

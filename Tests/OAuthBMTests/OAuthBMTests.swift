@@ -1,5 +1,4 @@
 import XCTest
-import Vapor
 @testable import OAuthBM
 
 final class OAuthBMTests: XCTestCase {

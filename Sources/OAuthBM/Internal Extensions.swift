@@ -1,4 +1,3 @@
-import Vapor
 
 extension ByteBuffer {
     /// Content string of a ByteBuffer.

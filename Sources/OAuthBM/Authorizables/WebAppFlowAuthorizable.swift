@@ -1,7 +1,6 @@
-import Vapor
 
 /// Protocol to enable `OAuth web application flow` actions
-public protocol WebAppFlowAuthorizable: OAuthable, StateSecure { }
+public protocol WebAppFlowAuthorizable: OAuthable { }
 
 extension WebAppFlowAuthorizable {
     

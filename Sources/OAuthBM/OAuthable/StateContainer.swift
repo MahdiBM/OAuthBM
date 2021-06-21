@@ -1,4 +1,3 @@
-import Vapor
 
 /// Length of the ``StateContainer/randomValue``
 private let randomValueLength = 64

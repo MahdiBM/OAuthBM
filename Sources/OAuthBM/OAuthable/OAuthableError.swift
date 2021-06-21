@@ -1,4 +1,3 @@
-import Vapor
 
 /// Errors that can be thrown by OAuthable's declarations.
 public enum OAuthableError: AbortError {
