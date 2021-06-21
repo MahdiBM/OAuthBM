@@ -13,8 +13,7 @@ extension String {
     ///   - length: length of the string.
     /// - Returns: a random string.
     static func random(length: Int) -> String {
-        let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-            .map({ $0 })
+        let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".map({ $0 })
         let indices = 0..<letters.count
         let randomInts = (0..<length).map { _ in
             Int.random(in: indices)

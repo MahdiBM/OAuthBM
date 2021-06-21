@@ -1,7 +1,7 @@
 import Vapor
 
 /// Protocol to enable `OAuth authorization code flow` actions
-public protocol ExplicitFlowAuthorizable: OAuthable, OAuthTokenBasicAuthRequirement { }
+public protocol ExplicitFlowAuthorizable: OAuthable, OAuthTokenBasicAuthRequirement, StateSecure { }
 
 extension ExplicitFlowAuthorizable {
     
@@ -58,19 +58,11 @@ extension ExplicitFlowAuthorizable {
             "type": .string("\(Self.self)")
         ])
         
-        guard let stateValue = req.query[String.self, at: "state"] else {
-            return req.eventLoop.future(error: decodeError(req: req, res: nil))
-        }
         let state: State
         do {
-            state = try State.extractFrom(session: req.session)
-            let urlState = try State(decodeFrom: stateValue)
-            req.session.destroy()
-            guard state == urlState
-            else { throw OAuthableError.serverError(error: .invalidCookie) }
+            state = try extractAndValidateState(req: req)
         } catch {
-            return req.eventLoop.future(error: OAuthableError.providerError(
-                error: .unknown(error: error.localizedDescription)))
+            return req.eventLoop.future(error: error)
         }
         
         guard let code = req.query[String.self, at: "code"] else {

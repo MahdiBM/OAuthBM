@@ -57,7 +57,7 @@ extension ImplicitFlowAuthorizable {
         }
         
         let state = req.eventLoop.tryFuture { () -> State in
-            let state = try State.extractFrom(session: req.session)
+            let state = try State.extract(from: req.session)
             req.session.destroy()
             return state
         }

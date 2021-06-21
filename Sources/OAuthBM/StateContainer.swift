@@ -1,5 +1,8 @@
 import Vapor
 
+/// Length of the ``StateContainer/randomValue``
+private let randomValueLength = 64
+
 /// Container of State-related stuff.
 public struct StateContainer<CallbackUrls>
 where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
@@ -25,20 +28,25 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
     public init(customValue: String = "", callbackUrl: CallbackUrls) {
         self.customValue = customValue
         self.callbackUrl = callbackUrl
-        self.randomValue = .random(length: 64)
+        self.randomValue = .random(length: randomValueLength)
     }
     
     internal func injectTo(session: Session) {
-        session.data["_OAuthBM_customValue"] = customValue
-        session.data["_OAuthBM_callbackUrl"] = callbackUrl.rawValue
-        session.data["_OAuthBM_randomValue"] = randomValue
+        OAuthBMSessionData.set(
+            session: session,
+            customValue: customValue,
+            callbackUrl: callbackUrl.rawValue,
+            randomValue: randomValue
+        )
     }
     
-    internal static func extractFrom(session: Session) throws -> Self {
-        guard let customValue = session.data["_OAuthBM_customValue"],
-              let callbackUrlStr = session.data["_OAuthBM_callbackUrl"],
+    internal static func extract(from session: Session) throws -> Self {
+        let oauthbmData = session.data.oauthbm
+        guard let customValue = oauthbmData.customValue,
+              let callbackUrlStr = oauthbmData.callbackUrl,
               let callbackUrl = CallbackUrls.init(rawValue: callbackUrlStr),
-              let randomValue = session.data["_OAuthBM_randomValue"]
+              let randomValue = oauthbmData.randomValue,
+              randomValue.count == randomValueLength
         else {
             throw OAuthableError.serverError(error: .invalidCookie)
         }
@@ -49,18 +57,30 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
         )
     }
     
-    internal init(decodeFrom valueDescription: String) throws {
-        let value = valueDescription.components(separatedBy: ",")
+    internal init(decodeFrom container: URLQueryContainer) throws {
         
-        guard value.count == 3, let callbackUrl = CallbackUrls(rawValue: value[1]) else {
-            let stateDesc = value.joined(separator: ", ").debugDescription
-            throw OAuthableError
-            .serverError(status: .badRequest, error: .stateDecode(state: stateDesc))
+        var error: OAuthableError {
+            let stateDesc = container[String.self, at: "state"]?.debugDescription ?? "NIL"
+            return .serverError(status: .badRequest, error: .stateDecode(state: stateDesc))
         }
         
-        self.customValue = value[0]
+        let values: [String]
+        if let stateString = container[String.self, at: "state"] {
+            let stateValues = stateString.components(separatedBy: ",")
+            values = stateValues
+        } else if let stateValues = container[[String].self, at: "state"] {
+            values = stateValues
+        } else {
+            throw error
+        }
+        
+        guard values.count == 3, let callbackUrl = CallbackUrls(rawValue: values[1]) else {
+            throw error
+        }
+        
+        self.customValue = values[0]
         self.callbackUrl = callbackUrl
-        self.randomValue = value[2]
+        self.randomValue = values[2]
     }
 }
 
