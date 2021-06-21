@@ -1,4 +1,3 @@
-import Fluent
 
 /// Basic OAuth-2 requirements.
 public protocol OAuthable {

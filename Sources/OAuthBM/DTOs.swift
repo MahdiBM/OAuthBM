@@ -1,4 +1,3 @@
-import Fluent
 
 //MARK: - RetrievedToken
 
