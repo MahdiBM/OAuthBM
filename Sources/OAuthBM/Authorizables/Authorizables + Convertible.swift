@@ -32,22 +32,7 @@ public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
         var refreshTokenContent: EventLoopFuture<RetrievedToken> {
             self.refreshToken(req, refreshToken: token.refreshToken)
         }
-        let removeTokenIfRevoked = refreshTokenContent.flatMapAlways {
-            result -> EventLoopFuture<RetrievedToken> in
-            switch result {
-            case let .success(token): return req.eventLoop.future(token)
-            case let .failure(error):
-                if let error = error as? OAuthableError,
-                   error == .providerError(status: .badRequest, error: .invalidToken) {
-                    /// Delete the token if its been revoked.
-                    return token.delete(on: req.db)
-                        .flatMapThrowing({ throw error })
-                } else {
-                    return req.eventLoop.future(error: error)
-                }
-            }
-        }
-        let newToken = removeTokenIfRevoked.flatMap { refreshToken in
+        let newToken = refreshTokenContent.flatMap { refreshToken in
             refreshToken.saveToDb(req: req, oldToken: token)
         }
         let deleteOldToken = newToken.flatMap { newToken in
@@ -127,23 +112,7 @@ public extension WebAppFlowAuthorizable where Self: OAuthTokenConvertible {
         var refreshTokenContent: EventLoopFuture<RetrievedToken> {
             self.refreshWebAppToken(req, refreshToken: token.refreshToken)
         }
-        #warning("remove this?!? (and the other one)")
-        let removeTokenIfRevoked = refreshTokenContent.flatMapAlways {
-            result -> EventLoopFuture<RetrievedToken> in
-            switch result {
-            case let .success(token): return req.eventLoop.future(token)
-            case let .failure(error):
-                if let error = error as? OAuthableError,
-                   error == .providerError(status: .badRequest, error: .invalidToken) {
-                    /// Delete the token if its been revoked.
-                    return token.delete(on: req.db)
-                        .flatMapThrowing({ throw error })
-                } else {
-                    return req.eventLoop.future(error: error)
-                }
-            }
-        }
-        let newToken = removeTokenIfRevoked.flatMap { refreshToken in
+        let newToken = refreshTokenContent.flatMap { refreshToken in
             refreshToken.saveToDb(req: req, oldToken: token)
         }
         let deleteOldToken = newToken.flatMap { newToken in
