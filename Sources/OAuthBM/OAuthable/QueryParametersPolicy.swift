@@ -1,10 +1,10 @@
 
 /// Different ways of encoding query parameters into a request.
 ///
-/// Some providers like `Spotify` and `Discord` don't work with `.passInUrl`,
+/// Some providers like `Spotify` and `Discord` don't work with `.useQueryStrings`,
 /// But other providers should work ok with `.useQueryStrings`.
 /// If your provider says some necessary headers/query-params are missing
-/// or throws weird errors, then you should try switching this.
+/// or throws weird errors, try switching this.
 public enum QueryParametersPolicy: String {
     /// Encodes parameters as query strings.
     case useQueryStrings

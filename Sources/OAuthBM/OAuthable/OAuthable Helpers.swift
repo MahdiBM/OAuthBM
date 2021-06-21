@@ -1,7 +1,18 @@
 
+//MARK: - Default Values
+
+public extension OAuthable {
+    
+    /// The policy to encode query parameters with.
+    var queryParametersPolicy: Policy {
+        .default
+    }
+}
+
 //MARK: - Other Declarations
 
 extension OAuthable {
+    
     /// All joined in a form to be used in a HTTP request.
     internal func joinScopes(_ scopes: [Scopes]) -> String {
         scopes.map(\.rawValue).joined(separator: "%20")
