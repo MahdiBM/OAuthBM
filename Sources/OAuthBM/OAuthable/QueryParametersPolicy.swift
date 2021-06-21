@@ -2,9 +2,9 @@
 /// Different ways of encoding query parameters into a request.
 ///
 /// Some providers like `Spotify` and `Discord` don't work with `.passInUrl`,
-/// But other providers should work ok with `.passInUrl`.
+/// But other providers should work ok with `.useQueryStrings`.
 /// If your provider says some necessary headers/query-params are missing
-/// or throws weird errors, then you should try using `.useUrlEncodedForm`.
+/// or throws weird errors, then you should try switching this.
 public enum QueryParametersPolicy: String {
     /// Encodes parameters as query strings.
     case useQueryStrings
@@ -12,7 +12,7 @@ public enum QueryParametersPolicy: String {
     case useUrlEncodedForm
     
     /// The value to use if you are unsure.
-    static let `default`: Self = .useQueryStrings
+    public static let `default`: Self = .useUrlEncodedForm
     
     /// Injects parameters into a client request.
     internal func inject(
