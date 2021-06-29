@@ -1,7 +1,7 @@
 
 /// Twitch model capable of performing OAuth-2 tasks.
 ///
-/// See `OAuthable`'s explanations for info about the declarations.
+/// See ``OAuthable``'s explanations for info about the declarations.
 public struct TwitchOAuthProvider<Token, CallbackUrls>: OAuthable, OAuthTokenConvertible
 where Token: Model & Content & OAuthTokenRepresentative,
 CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
@@ -17,7 +17,7 @@ CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
     }
     
     /*
-     See `OAuthable` protocol's explanation for insight about below stuff.
+     See ``OAuthable`` protocol's explanation for insight about below stuff.
      */
     
     public let clientId: String
@@ -87,6 +87,7 @@ extension Issuer {
 extension TwitchOAuthProvider: ExplicitFlowAuthorizable { }
 extension TwitchOAuthProvider: ImplicitFlowAuthorizable { }
 extension TwitchOAuthProvider: ClientFlowAuthorizable { }
+extension TwitchOAuthProvider: OAuthTokenRefreshable { }
 extension TwitchOAuthProvider: OAuthTokenRevocable {
     public var revocationUrl: String {
         "https://id.twitch.tv/oauth2/revoke"

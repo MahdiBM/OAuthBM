@@ -3,9 +3,8 @@
 
 public extension OAuthable {
     
-    /// The policy to encode query parameters with.
     var queryParametersPolicy: Policy {
-        .default
+        .useUrlEncodedForm
     }
 }
 
@@ -13,7 +12,7 @@ public extension OAuthable {
 
 extension OAuthable {
     
-    /// All joined in a form to be used in a HTTP request.
+    /// ``OAuthable/Scopes`` joined in a form to be used in a HTTP request.
     internal func joinScopes(_ scopes: [Scopes]) -> String {
         scopes.map(\.rawValue).joined(separator: "%20")
     }
@@ -23,8 +22,8 @@ extension OAuthable {
 
 extension OAuthable {
     
-    /// Extracts `state` from `Session` and `Request`
-    /// and makes sure they are valid an match each-other.
+    /// Extracts ``OAuthable/State`` from `Session` and `Request`
+    /// and makes sure they are valid and match each-other.
     internal func extractAndValidateState(req: Request) throws -> State {
         let state: State
         do {
@@ -32,11 +31,8 @@ extension OAuthable {
             let urlState = try State(decodeFrom: req.query)
             req.session.destroy()
             guard state == urlState
-            else { throw OAuthableError.serverError(error: .invalidCookie) }
+            else { throw OAuthableError.serverError(error: .invalidCookies) }
         } catch let thrownError {
-            func throwError<T>(_ error: Error) -> EventLoopFuture<T> {
-                req.eventLoop.future(error: error)
-            }
             if let error = decodeErrorIfAvailable(req: req, res: nil) {
                 throw error
             } else if let oauthableError = thrownError as? OAuthableError {
@@ -53,13 +49,15 @@ extension OAuthable {
 //MARK: - Decoders
 
 extension OAuthable {
+    
     /// Decodes response's content while taking care of errors.
-    /// - Throws: OAuthableError in case of error.
-    internal func decode<T>(
-        response res: ClientResponse,
-        request req: Request,
-        as type: T.Type
-    ) -> EventLoopFuture<T> where T: Content {
+    /// - Parameters:
+    ///   - req: The `Request`.
+    ///   - res: The `ClientResponse`.
+    ///   - type: The type to decode to.
+    /// - Returns: An `EventLoopFuture` containing a value of the entered type.
+    internal func decode<T>(req: Request, res: ClientResponse, as type: T.Type)
+    -> EventLoopFuture<T> where T: Content {
         req.eventLoop.tryFuture {
             if res.status.code < 300, res.status.code >= 200 {
                 do {
@@ -74,6 +72,11 @@ extension OAuthable {
         }
     }
     
+    /// Decodes any available errors.
+    /// - Parameters:
+    ///   - req: The `Request`.
+    ///   - res: The `ClientResponse` if available.
+    /// - Returns: ``OAuthableError`` if there are any errors, and `nil` otherwise.
     internal func decodeErrorIfAvailable(req: Request, res: ClientResponse?) -> OAuthableError? {
         if let queryError = QueryError.extractOAuthError(from: req) {
             return queryError
@@ -83,6 +86,11 @@ extension OAuthable {
         return nil
     }
     
+    /// Decodes any available errors; Throws an `unknown` error if none are available.
+    /// - Parameters:
+    ///   - req: The `Request`.
+    ///   - res: The `ClientResponse` if available.
+    /// - Returns: An ``OAuthableError``.
     internal func decodeError(req: Request, res: ClientResponse?) -> OAuthableError {
         if let error = decodeErrorIfAvailable(req: req, res: res) {
             return error
@@ -107,6 +115,9 @@ private struct ContentError: Decodable {
         let error: String
     }
     
+    /// Extracts a possible errors out of a `ClientResponse`
+    /// - Parameter res: The `ClientResponse`.
+    /// - Returns: ``OAuthableError`` if there are any errors, and `nil` otherwise.
     static func extractOAuthError(from res: ClientResponse) -> OAuthableError? {
         func oauthError(_ providerError: OAuthableError.ProviderError) -> OAuthableError {
             .providerError(error: providerError)
@@ -131,6 +142,9 @@ private struct ContentError: Decodable {
 private struct QueryError: Decodable {
     let error: String
     
+    /// Extracts a possible errors out of a `Request`
+    /// - Parameter req: The `Request`.
+    /// - Returns: ``OAuthableError`` if there are any errors, and `nil` otherwise.
     static func extractOAuthError(from req: Request) -> OAuthableError? {
         guard let value = try? req.query.decode(Self.self),
               let providerError = OAuthableError.ProviderError(rawValue: value.error)

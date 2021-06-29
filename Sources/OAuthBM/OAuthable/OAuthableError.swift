@@ -18,8 +18,8 @@ public enum OAuthableError: AbortError {
         }
     }
     
-    /// Status code of the error.
-    public var status: HTTPResponseStatus {
+    /// Status code of this error.
+    public var status: HTTPStatus {
         switch self {
         case .providerError(let status, _): return status
         case .serverError(let status, _): return status
@@ -27,44 +27,21 @@ public enum OAuthableError: AbortError {
     }
 }
 
-/// Equatable Conformance.
+/// ``Equatable`` Conformance.
 extension OAuthableError: Equatable {
     public static func == (lhs: OAuthableError, rhs: OAuthableError) -> Bool {
         lhs.reason == rhs.reason
     }
 }
 
-//MARK: - ServerError
-
-extension OAuthableError {
-    public enum ServerError: Equatable {
-        case invalidCookie
-        case stateDecode(state: String)
-        case queryParametersEncode(policy: QueryParametersPolicy)
-        case unknown(error: String?)
-        
-        fileprivate var errorDescription: String {
-            switch self {
-            case .invalidCookie:
-                return "[Could not approve the legitimacy of your request. Please use a web"
-                    + " browser that allows cookies (e.g. Google Chrome, Firefox, Microsoft Edge)"
-                    + " , or enable cookies for this website.]"
-            case .stateDecode(let state):
-                return "[Could not decode state \(state.debugDescription).]"
-            case .queryParametersEncode(let policy):
-                return "[Failed to encode query parameters into"
-                    + " the request using policy `\(policy.rawValue)`.]"
-            case .unknown(let error): return "[UNKNOWN: \(error ?? "NIL")]"
-            }
-        }
-        
-    }
-}
-
 //MARK: - ProviderError
 
 extension OAuthableError {
+    
+    /// Errors thrown by the provider.
     public enum ProviderError: Equatable {
+        
+        // These below cases are the usual errors an OAuth provider might throw.
         case unsupportedOverHttp
         case versionRejected
         case parameterAbsent
@@ -83,8 +60,10 @@ extension OAuthableError {
         case invalidClientSecret
         case invalidGrant
         case invalidScope
+        /// Unknown error.
         case unknown(error: String?)
         
+        /// The raw-value of an error which most providers will use.
         private var rawValue: String {
             switch self {
             case .unsupportedOverHttp: return "unsupported_over_http"
@@ -109,6 +88,7 @@ extension OAuthableError {
             }
         }
         
+        /// All possible cases of an ``ProviderError``.
         private static let allCases: [Self] = [
             .unsupportedOverHttp,
             .versionRejected,
@@ -131,6 +111,7 @@ extension OAuthableError {
             .unknown(error: ""),
         ]
         
+        /// A description for a ``ProviderError``.
         private var description: String {
             switch self {
             case .unsupportedOverHttp:
@@ -173,6 +154,7 @@ extension OAuthableError {
             }
         }
         
+        /// A description to be used when throwing errors.
         fileprivate var errorDescription: String {
             switch self {
             case .unknown(let errorString): return "[UNKNOWN: \(errorString ?? "NIL")]"
@@ -180,6 +162,7 @@ extension OAuthableError {
             }
         }
         
+        /// Initialize an instance by matching raw-values.
         init? (rawValue: String) {
             guard !rawValue.replacingOccurrences(of: " ", with: "").isEmpty,
                   let value = Self.allCases.first(where: { $0.rawValue == rawValue })
@@ -187,10 +170,47 @@ extension OAuthableError {
             self = value
         }
         
+        /// Initialize an instance by matching descriptions.
         init? (fromDescription desc: String) {
             guard let value = Self.allCases.first(where: { $0.description.contains(desc) })
             else { return nil }
             self = value
         }
+    }
+}
+
+
+//MARK: - ServerError
+
+extension OAuthableError {
+    
+    /// Errors thrown by the server.
+    public enum ServerError: Equatable {
+        
+        /// App failure to use cookies.
+        case invalidCookies
+        /// Failure to decode an ``StateContainer``.
+        case stateDecode(state: String)
+        /// Failure to encode query-parameters into a `ClientRequest`.
+        case queryParametersEncode(policy: QueryParametersPolicy)
+        /// Unknown error.
+        case unknown(error: String?)
+        
+        /// A description to be used when throwing errors.
+        fileprivate var errorDescription: String {
+            switch self {
+            case .invalidCookies:
+                return "[Could not approve the legitimacy of your request. Please use a web"
+                    + " browser that allows cookies (e.g. Google Chrome, Firefox, Microsoft Edge)"
+                    + " , or enable cookies for this website.]"
+            case .stateDecode(let state):
+                return "[Could not decode state \(state.debugDescription).]"
+            case .queryParametersEncode(let policy):
+                return "[Failed to encode query parameters into"
+                    + " the request using policy `\(policy.rawValue)`.]"
+            case .unknown(let error): return "[UNKNOWN: \(error ?? "NIL")]"
+            }
+        }
+        
     }
 }

@@ -6,15 +6,17 @@
 /// If your provider says some necessary headers/query-params are missing
 /// or throws weird errors, try switching this.
 public enum QueryParametersPolicy: String {
+    
     /// Encodes parameters as query strings.
     case useQueryStrings
     /// Encodes parameters as url-encoded form.
     case useUrlEncodedForm
     
-    /// The value to use if you are unsure.
-    public static let `default`: Self = .useUrlEncodedForm
-    
     /// Injects parameters into a client request.
+    /// - Parameters:
+    ///   - parameters: The parameters to encode into the request.
+    ///   - clientRequest: The `ClientRequest` to encode parameters to.
+    /// - Throws: A normal ``Vapor`` error if the encode process is unsuccessful.
     internal func inject(
         parameters: QueryParameters,
         into clientRequest: inout ClientRequest
@@ -28,8 +30,11 @@ public enum QueryParametersPolicy: String {
     }
 }
 
+//MARK: - ``QueryParameters`` declaration.
+
 /// Helps encode query parameters into a request.
 internal struct QueryParameters {
+    
     //MARK: Stuff that might need to be passed as query params into a OAuth-2 request.
     var clientId: String?
     var clientSecret: String?
@@ -86,6 +91,7 @@ internal struct QueryParameters {
     }
 }
 
+//MARK: - `Content` conformance.
 extension QueryParameters: Content {
     enum CodingKeys: String, CodingKey {
         case clientId = "client_id"

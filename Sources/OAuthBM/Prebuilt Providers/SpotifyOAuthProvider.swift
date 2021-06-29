@@ -1,7 +1,7 @@
 
 /// Spotify model capable of performing OAuth-2 tasks.
 ///
-/// See `OAuthable`'s explanations for info about the declarations.
+/// See ``OAuthable``'s explanations for info about the declarations.
 public struct SpotifyOAuthProvider<Token, CallbackUrls>: OAuthable, OAuthTokenConvertible
 where Token: Model & Content & OAuthTokenRepresentative,
 CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
@@ -17,7 +17,7 @@ CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
     }
     
     /*
-     See `OAuthable` protocol's explanation for insight about below stuff.
+     See ``OAuthable`` protocol's explanation for insight about below stuff.
      */
     
     public let clientId: String
@@ -80,3 +80,4 @@ extension Issuer {
 extension SpotifyOAuthProvider: ExplicitFlowAuthorizable { }
 extension SpotifyOAuthProvider: ImplicitFlowAuthorizable { }
 extension SpotifyOAuthProvider: ClientFlowAuthorizable { }
+extension SpotifyOAuthProvider: OAuthTokenRefreshable { }

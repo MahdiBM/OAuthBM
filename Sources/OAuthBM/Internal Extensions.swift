@@ -1,5 +1,6 @@
 
 extension ByteBuffer {
+    
     /// Content string of a ByteBuffer.
     var contentString: String {
         .init(decoding: self.readableBytesView, as: UTF8.self)
@@ -7,6 +8,7 @@ extension ByteBuffer {
 }
 
 extension String {
+    
     /// Creates a random string.
     /// - Parameters:
     ///   - length: length of the string.
@@ -23,7 +25,8 @@ extension String {
 }
 
 extension EventLoopFuture {
-    /// A version of `.flatMap` which can throw as well.
+    
+    /// A version of `flatMap` that can throw as well.
     func tryFlatMap<NewValue>(
         file: StaticString = #file,
         line: UInt = #line,

@@ -1,7 +1,7 @@
 
 /// Discord model capable of performing OAuth-2 tasks.
 ///
-/// See `OAuthable`'s explanations for info about the declarations.
+/// See ``OAuthable``'s explanations for info about the declarations.
 public struct DiscordOAuthProvider<Token, CallbackUrls>: OAuthable, OAuthTokenConvertible
 where Token: Model & Content & OAuthTokenRepresentative,
 CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
@@ -17,7 +17,7 @@ CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
     }
     
     /*
-     See `OAuthable` protocol's explanation for insight about below stuff.
+     See ``OAuthable`` protocol's explanation for insight about below stuff.
      */
     
     public let clientId: String
@@ -113,6 +113,7 @@ extension Issuer {
 extension DiscordOAuthProvider: ExplicitFlowAuthorizable { }
 extension DiscordOAuthProvider: ImplicitFlowAuthorizable { }
 extension DiscordOAuthProvider: ClientFlowAuthorizable { }
+extension DiscordOAuthProvider: OAuthTokenRefreshable { }
 extension DiscordOAuthProvider: OAuthTokenRevocable {
     public var revocationUrl: String {
         "https://discord.com/api/oauth2/token/revoke"

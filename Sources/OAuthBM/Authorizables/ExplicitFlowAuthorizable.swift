@@ -6,10 +6,13 @@ extension ExplicitFlowAuthorizable {
     
     //MARK: - Authorization
     
-    /// The url to redirect user to,
-    /// so they are asked to give this app permissions to access their data.
+    /// The URL to redirect user to, so they are asked to give
+    /// this app permissions to access their data.
     ///
-    /// - Throws: OAuthableError in case of error.
+    /// - Parameters:
+    ///   - state: The ``OAuthable/State`` of the request.
+    ///   - scopes: The ``OAuthable/Scopes`` to request authorization for.
+    /// - Returns: A URL string to redirect users to.
     private func authorizationRedirectUrl(
         state: State,
         scopes: [Scopes] = Array(Scopes.allCases)
@@ -26,8 +29,15 @@ extension ExplicitFlowAuthorizable {
     
     /// Redirects user to the provider page where they're asked to give this app permissions.
     ///
-    /// After successful completion, they are redirected to the `self.callbackUrl` and we'll
-    /// acquire an access-token using the `code` parameter that will be passed to us.
+    /// Upon successful completion, they are redirected to the `callbackUrl` and
+    /// we will acquire a token with the help of the `authorizationCallback(_:)` func.
+    ///
+    /// - Parameters:
+    ///   - req: The `Request`.
+    ///   - state: The ``OAuthable/State`` of the request.
+    ///   - scopes: The ``OAuthable/Scopes`` to request authorization for.
+    ///   - arg: Optional extra argument to be passed to your provider for more customization.
+    /// - Returns: A `Response`.
     public func requestAuthorization(
         _ req: Request,
         state: State,
@@ -47,10 +57,10 @@ extension ExplicitFlowAuthorizable {
     
     /// Takes care of callback endpoint's actions.
     ///
-    /// This func is used after the user gets
-    /// redirected back to this app by the provider.
+    /// This func is used after the user gets redirected back to this app by the provider.
     ///
-    /// - Throws: OAuthableError in case of error.
+    /// - Parameter req: The `Request`.
+    /// - Returns: The ``OAuthable/State`` of the request and the acquired ``RetrievedToken``.
     public func authorizationCallback(_ req: Request)
     -> EventLoopFuture<(state: State, token: RetrievedToken)> {
         req.logger.trace("OAuth2 authorization callback called.", metadata: [
@@ -72,8 +82,8 @@ extension ExplicitFlowAuthorizable {
             try self.userAccessTokenRequest(callbackUrl: state.callbackUrl, code: code)
         }
         let clientResponse = clientRequest.flatMap { req.client.send($0) }
-        let accessTokenContent = clientResponse.flatMap {
-            decode(response: $0, request: req, as: DecodedToken.self)
+        let accessTokenContent = clientResponse.flatMap { res in
+            decode(req: req, res: res, as: DecodedToken.self)
         }
         let retrievedToken = accessTokenContent.map {
             $0.convertToRetrievedToken(issuer: self.issuer, flow: .authorizationCodeFlow)
@@ -87,11 +97,12 @@ extension ExplicitFlowAuthorizable {
     
     //MARK: - Code to Token Request
     
-    /// The request that gets an access token from the provider,
-    /// using the `code` that this app should acquired after
-    /// user being redirected to this app by the provider.
-    ///
-    /// - Throws: OAuthableError in case of error.
+    /// The client request to acquire a user access token with.
+    /// - Parameters:
+    ///   - callbackUrl: The ``OAuthable/CallbackUrls`` to make the request for.
+    ///   - code: The code-string to request authorization with.
+    /// - Throws: ``OAuthableError``.
+    /// - Returns: A `ClientRequest` to send to acquire a user access token with.
     private func userAccessTokenRequest(callbackUrl: CallbackUrls, code: String)
     throws -> ClientRequest {
         let queryParams = QueryParameters.init(
@@ -115,55 +126,6 @@ extension ExplicitFlowAuthorizable {
         }
         
         return clientRequest
-    }
-    
-    //MARK: - Refreshing Tokens
-    
-    /// The request to refresh an expired token with.
-    ///
-    /// - Throws: OAuthableError in case of error.
-    private func refreshTokenRequest(refreshToken: String) throws -> ClientRequest {
-        let queryParams = QueryParameters.init(
-            clientId: self.clientId,
-            clientSecret: self.clientSecret,
-            grantType: .refreshToken,
-            refreshToken: refreshToken)
-        var clientRequest = ClientRequest()
-        clientRequest.method = .POST
-        clientRequest.url = .init(string: self.tokenUrl)
-        
-        injectBasicAuthHeadersIfNeeded(to: &clientRequest)
-        do {
-            try self.queryParametersPolicy.inject(parameters: queryParams, into: &clientRequest)
-        } catch {
-            throw OAuthableError.serverError(
-                status: .preconditionFailed,
-                error: .queryParametersEncode(policy: queryParametersPolicy)
-            )
-        }
-        
-        return clientRequest
-    }
-    
-    /// Immediately tries to refresh the token.
-    ///
-    /// - Throws: OAuthableError in case of error.
-    /// - Returns: A fresh token.
-    public func refreshToken(_ req: Request, refreshToken: String)
-    -> EventLoopFuture<RetrievedToken> {
-        let clientRequest = req.eventLoop.tryFuture {
-            try self.refreshTokenRequest(refreshToken: refreshToken)
-        }
-        let clientResponse = clientRequest.flatMap {
-            req.client.send($0)
-        }
-        let refreshTokenContent = clientResponse.flatMap {
-            decode(response: $0, request: req, as: DecodedToken.self)
-        }
-        let retrievedToken = refreshTokenContent.map {
-            $0.convertToRetrievedToken(issuer: self.issuer, flow: .authorizationCodeFlow)
-        }
-        return retrievedToken
     }
 }
 

@@ -1,9 +1,13 @@
 
+/// Indicates whether or not an OAuth-2 provider requires basic authorization where applicable.
 public protocol OAuthTokenBasicAuthRequirement {
     
     /// Whether or not the request which gets the token from the provider
-    /// requires basic authentication where the `username` is `clientId`
-    /// and the `password` is `clientSecret`. Defaults to `false`.
+    /// requires basic authentication.
+    ///
+    /// Defaults to `false`.
+    /// The basic authorization `username` will be the `clientId` and the `password`
+    /// will be the `clientSecret`.
     /// Majority of providers don't require this, but some provider like `Reddit` do.
     /// This should be mentioned in the provider's panel if it's required, But
     /// you may switch this to `true` if you are getting `401 Unauthorized` errors.
@@ -16,6 +20,8 @@ extension OAuthTokenBasicAuthRequirement where Self: OAuthable {
         false
     }
     
+    /// Injects basic authorization headers to the request if needed.
+    /// - Parameter clientRequest: The `ClientRequest` to inject to.
     internal func injectBasicAuthHeadersIfNeeded(to clientRequest: inout ClientRequest) {
         guard self.tokenRequestsRequireBasicAuthentication else { return }
         clientRequest.headers.basicAuthorization = .init(

@@ -1,7 +1,7 @@
 
 /// Github model capable of performing OAuth-2 tasks.
 ///
-/// See `OAuthable`'s explanations for info about the declarations.
+/// See ``OAuthable``'s explanations for info about the declarations.
 public struct GithubOAuthProvider<Token, CallbackUrls>: OAuthable, OAuthTokenConvertible
 where Token: Model & Content & OAuthTokenRepresentative,
 CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
@@ -17,7 +17,7 @@ CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
     }
     
     /*
-     See `OAuthable` protocol's explanation for insight about below stuff.
+     See ``OAuthable`` protocol's explanation for insight about below stuff.
      */
     
     public let clientId: String
@@ -72,7 +72,7 @@ extension GithubOAuthProvider {
     
     /// Forces Github to _not_ allow unauthenticated users to signup.
     ///
-    /// Github Explanation @ https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps:
+    /// Github Explanation @ [Github Website](https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps):
     /// "Whether or not unauthenticated users will be offered an option to sign up for GitHub during the OAuth flow. The default is true. Use false when a policy prohibits signups."
     ///
     /// Passing this as `extraArg` in funcs like `requestAuthorization(_:state:extraArg:)`
@@ -93,3 +93,4 @@ extension Issuer {
 //MARK: - Enable related OAuth tasks
 
 extension GithubOAuthProvider: WebAppFlowAuthorizable { }
+extension GithubOAuthProvider: OAuthTokenRefreshable { }

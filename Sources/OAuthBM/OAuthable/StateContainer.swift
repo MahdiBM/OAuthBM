@@ -1,6 +1,6 @@
 
 /// Length of the ``StateContainer/randomValue``
-private let randomValueLength = 64
+private let lengthOfRandomValue = 64
 
 /// Container of State-related stuff.
 public struct StateContainer<CallbackUrls>
@@ -18,18 +18,29 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
         [customValue, callbackUrl.rawValue, randomValue]
     }
     
+    /// Initializes an instance using the provided values.
+    /// - Parameters:
+    ///   - customValue: The ``customValue``.
+    ///   - callbackUrl: The ``callbackUrl``.
+    ///   - randomValue: The ``randomValue``.
     internal init(customValue: String, callbackUrl: CallbackUrls, randomValue: String) {
         self.customValue = customValue
         self.callbackUrl = callbackUrl
         self.randomValue = randomValue
     }
     
+    /// Initializes an instance using the provided ``customValue`` and ``callbackUrl``.
+    /// - Parameters:
+    ///   - customValue: The ``customValue``.
+    ///   - callbackUrl: The ``callbackUrl``.
     public init(customValue: String = "", callbackUrl: CallbackUrls) {
         self.customValue = customValue
         self.callbackUrl = callbackUrl
-        self.randomValue = .random(length: randomValueLength)
+        self.randomValue = .random(length: lengthOfRandomValue)
     }
     
+    /// Injects the current values of this instance to the session.
+    /// - Parameter session: The ``Session``.
     internal func injectTo(session: Session) {
         OAuthBMSessionData.set(
             session: session,
@@ -39,15 +50,19 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
         )
     }
     
+    /// Extracts an instance of ``OAuthable/State`` out of the session.
+    /// - Parameter session: The ``Session``.
+    /// - Throws: ``OAuthableError``.
+    /// - Returns: The extracted value.
     internal static func extract(from session: Session) throws -> Self {
         let oauthbmData = session.data.oauthbm
         guard let customValue = oauthbmData.customValue,
               let callbackUrlStr = oauthbmData.callbackUrl,
               let callbackUrl = CallbackUrls.init(rawValue: callbackUrlStr),
               let randomValue = oauthbmData.randomValue,
-              randomValue.count == randomValueLength
+              randomValue.count == lengthOfRandomValue
         else {
-            throw OAuthableError.serverError(error: .invalidCookie)
+            throw OAuthableError.serverError(error: .invalidCookies)
         }
         return Self(
             customValue: customValue,
@@ -56,6 +71,9 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
         )
     }
     
+    /// Decodes an instance of ``OAuthable/State`` from the container.
+    /// - Parameter container: The `URLQueryContainer`.
+    /// - Throws: ``OAuthableError``.
     internal init(decodeFrom container: URLQueryContainer) throws {
         
         var error: OAuthableError {
@@ -83,7 +101,7 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
     }
 }
 
-//MARK: - Equatable conformance
+//MARK: - `Equatable` conformance
 extension StateContainer: Equatable {
     public static func ==<A, B> (lhs: StateContainer<A>, rhs: StateContainer<B>) -> Bool {
         lhs.randomValue == rhs.randomValue &&

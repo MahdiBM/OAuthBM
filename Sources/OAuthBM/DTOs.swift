@@ -1,9 +1,12 @@
 
 //MARK: - RetrievedToken
 
-/// A container that is passed to
-/// `OAuthTokenRepresentative/initializeAndSave(request:token:oldToken)` to make a new token.
+/// Container of raw OAuth token info.
+///
+/// This is passed to ``OAuthTokenRepresentative/initializeAndSave(request:token:oldToken:)``
+/// to make a new token.
 public struct RetrievedToken: Content {
+    
     //MARK: Normal OAuth-2 access-token declarations
     public let accessToken: String
     public let tokenType: String
@@ -35,6 +38,7 @@ extension RetrievedToken {
 
 /// A type to decode tokens that are retrieved from providers to.
 internal struct DecodedToken {
+    
     //MARK: Normal OAuth-2 token declarations
     let accessToken: String
     let tokenType: String
@@ -45,6 +49,7 @@ internal struct DecodedToken {
     let refreshTokenExpiresIn: Int?
 }
 
+//MARK: `Content` conformance.
 extension DecodedToken: Content {
     enum CodingKeys: CodingKey {
         case accessToken
@@ -80,8 +85,10 @@ extension DecodedToken: Content {
     }
 }
 
+//MARK: Conversion to ``RetrievedToken``.
 extension DecodedToken {
-    /// Converts a `DecodedToken` to a `RetrievedToken`,
+    
+    /// Converts a ``DecodedToken`` to a ``RetrievedToken``,
     func convertToRetrievedToken(issuer: Issuer, flow: RetrievedToken.Flow) -> RetrievedToken {
         let scopesFromScope: [String]
         if let scope = self.scope {

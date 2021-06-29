@@ -17,7 +17,7 @@ public protocol OAuthable {
     
     /// Your callback urls.
     /// 
-    /// All must be registered the callback urls in your provider's panel.
+    /// All must be registered as the callback urls in your provider's panel.
     associatedtype CallbackUrls: RawRepresentable
     where CallbackUrls.RawValue == String
     
@@ -35,9 +35,9 @@ public protocol OAuthable {
     /// The `code` is passed to this url and in return, an `access token` is acquired.
     var tokenUrl: String { get }
     
-    /// The policy to encode query parameters with.
-    var queryParametersPolicy: Policy { get }
-    
     /// The provider which issues these tokens.
     var issuer: Issuer { get }
+    
+    /// The policy to encode query parameters with.
+    var queryParametersPolicy: Policy { get }
 }

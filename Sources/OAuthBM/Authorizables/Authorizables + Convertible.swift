@@ -8,10 +8,9 @@ public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
     /// Takes care of callback endpoint's actions,
     /// after the user hits the authorization endpoint
     /// and gets redirected back to this app by the provider.
-    ///
-    /// - Throws: OAuthableError in case of error.
-    func authorizationCallback(_ req: Request)
-    -> EventLoopFuture<(state: State, token: Token)> {
+    /// - Parameter req: The `Request`.
+    /// - Returns: The ``OAuthable/State`` of the request and the acquired ``OAuthTokenConvertible/Token``.
+    func authorizationCallback(_ req: Request) -> EventLoopFuture<(state: State, token: Token)> {
         req.logger.trace("OAuth2 authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
@@ -23,43 +22,6 @@ public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
                 .map({ (state: state, token: $0) })
         }
     }
-    
-    /// Immediately tries to refresh the token.
-    ///
-    /// - Throws: OAuthableError in case of error.
-    /// - Returns: A fresh token.
-    func refreshToken(_ req: Request, token: Token) -> EventLoopFuture<Token> {
-        var refreshTokenContent: EventLoopFuture<RetrievedToken> {
-            self.refreshToken(req, refreshToken: token.refreshToken)
-        }
-        let newToken = refreshTokenContent.flatMap { refreshToken in
-            refreshToken.saveToDb(req: req, oldToken: token)
-        }
-        let deleteOldToken = newToken.flatMap { newToken in
-            token.delete(on: req.db).map { _ in newToken }
-        }
-        
-        return deleteOldToken.map { $0 }
-    }
-    
-    /// Refreshes the token if needed.
-    ///
-    /// - Returns: The same token if not expired, otherwise a fresh token.
-    func refreshTokenIfExpired(_ req: Request, token: Token) -> EventLoopFuture<Token> {
-        if token.tokenHasExpired && token.tokenIsRefreshable {
-            req.logger.trace("Token has expired. Will try to acquire new one.", metadata: [
-                "type": .string("\(Self.self)"),
-                "token": .stringConvertible(token),
-            ])
-            return refreshToken(req, token: token)
-        } else {
-            req.logger.trace("Token has not expired. Will return the current token.", metadata: [
-                "type": .string("\(Self.self)"),
-                "token": .stringConvertible(token),
-            ])
-            return req.eventLoop.future(token)
-        }
-    }
 }
 
 //MARK: - ClientFlowAuthorizable + OAuthTokenConvertible
@@ -68,8 +30,15 @@ public extension ClientFlowAuthorizable where Self: OAuthTokenConvertible {
     
     /// Tries to acquire an app access token.
     ///
-    /// - Throws: OAuthableError in case of error.
-    func getAppAccessToken(_ req: Request, scopes: [Scopes] = []) -> EventLoopFuture<Token> {
+    /// `scopes` defaults to an empty array because most providers
+    /// don't require/need scopes specified for app access tokens.
+    ///
+    /// - Parameters:
+    ///   - req: The `Request`.
+    ///   - scopes: The ``OAuthable/Scopes`` to get access token for.
+    /// - Returns: The acquired ``OAuthTokenConvertible/Token``.
+    func getAppAccessToken(_ req: Request, scopes: [Scopes] = [])
+    -> EventLoopFuture<Token> {
         var appAccessToken: EventLoopFuture<RetrievedToken> {
             self.getAppAccessToken(req, scopes: scopes)
         }
@@ -88,8 +57,8 @@ public extension WebAppFlowAuthorizable where Self: OAuthTokenConvertible {
     /// Takes care of callback endpoint's actions,
     /// after the user hits the authorization endpoint
     /// and gets redirected back to this app by the provider.
-    ///
-    /// - Throws: OAuthableError in case of error.
+    /// - Parameter req: The `Request`.
+    /// - Returns: The ``OAuthable/State`` of the request and the acquired ``OAuthTokenConvertible/Token``.
     func webAppAuthorizationCallback(_ req: Request)
     -> EventLoopFuture<(state: State, token: Token)> {
         req.logger.trace("OAuth2 web app authorization callback called.", metadata: [
@@ -101,43 +70,6 @@ public extension WebAppFlowAuthorizable where Self: OAuthTokenConvertible {
         return authorizationCallback.flatMap { state, accessToken in
             accessToken.saveToDb(req: req, oldToken: nil)
                 .map({ (state: state, token: $0) })
-        }
-    }
-    
-    /// Immediately tries to refresh the token.
-    ///
-    /// - Throws: OAuthableError in case of error.
-    /// - Returns: A fresh token.
-    func refreshWebAppToken(_ req: Request, token: Token) -> EventLoopFuture<Token> {
-        var refreshTokenContent: EventLoopFuture<RetrievedToken> {
-            self.refreshWebAppToken(req, refreshToken: token.refreshToken)
-        }
-        let newToken = refreshTokenContent.flatMap { refreshToken in
-            refreshToken.saveToDb(req: req, oldToken: token)
-        }
-        let deleteOldToken = newToken.flatMap { newToken in
-            token.delete(on: req.db).map { _ in newToken }
-        }
-        
-        return deleteOldToken.map { $0 }
-    }
-    
-    /// Refreshes the token if needed.
-    ///
-    /// - Returns: The same token if not expired, otherwise a fresh token.
-    func refreshWebAppTokenIfExpired(_ req: Request, token: Token) -> EventLoopFuture<Token> {
-        if token.tokenHasExpired {
-            req.logger.trace("Token has expired. Will try to acquire new one.", metadata: [
-                "type": .string("\(Self.self)"),
-                "token": .stringConvertible(token),
-            ])
-            return refreshWebAppToken(req, token: token)
-        } else {
-            req.logger.trace("Token has not expired. Will return the current token.", metadata: [
-                "type": .string("\(Self.self)"),
-                "token": .stringConvertible(token),
-            ])
-            return req.eventLoop.future(token)
         }
     }
 }

@@ -4,9 +4,10 @@ public protocol ClientFlowAuthorizable: OAuthable, OAuthTokenBasicAuthRequiremen
 
 extension ClientFlowAuthorizable {
     
-    /// The request to acquire an app access token.
-    ///
-    /// - Throws: OAuthableError in case of error.
+    /// The client request to acquire an app access token with.
+    /// - Parameter scopes: The ``OAuthable/Scopes`` to request authorization for.
+    /// - Throws: ``OAuthableError``.
+    /// - Returns: A `ClientRequest` to send to acquire an app access token with.
     private func appAccessTokenRequest(scopes: [Scopes]) throws -> ClientRequest {
         let queryParams = QueryParameters.init(
             clientId: self.clientId,
@@ -30,12 +31,15 @@ extension ClientFlowAuthorizable {
         return clientRequest
     }
     
-    /// Tries to acquire an app access token.
+    /// Attempts to acquire an app access token.
     ///
     /// `scopes` defaults to an empty array because most providers
     /// don't require/need scopes specified for app access tokens.
     ///
-    /// - Throws: OAuthableError in case of error.
+    /// - Parameters:
+    ///   - req: The `Request`.
+    ///   - scopes: The ``OAuthable/Scopes`` to request authorization for.
+    /// - Returns: A ``RetrievedToken``.
     public func getAppAccessToken(_ req: Request, scopes: [Scopes] = [])
     -> EventLoopFuture<RetrievedToken> {
         let clientRequest = req.eventLoop.tryFuture {
@@ -45,7 +49,7 @@ extension ClientFlowAuthorizable {
             req.client.send($0)
         }
         let tokenContent = clientResponse.flatMap { res in
-            decode(response: res, request: req, as: DecodedToken.self)
+            decode(req: req, res: res, as: DecodedToken.self)
         }
         let retrievedToken = tokenContent.map {
             $0.convertToRetrievedToken(issuer: self.issuer, flow: .clientCredentialsFlow)

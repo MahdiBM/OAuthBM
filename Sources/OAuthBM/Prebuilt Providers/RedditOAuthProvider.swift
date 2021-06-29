@@ -1,7 +1,7 @@
 
 /// Reddit model capable of performing OAuth-2 tasks.
 ///
-/// See `OAuthable`'s explanations for info about the declarations.
+/// See ``OAuthable``'s explanations for info about the declarations.
 public struct RedditOAuthProvider<Token, CallbackUrls>: OAuthable, OAuthTokenConvertible
 where Token: Model & Content & OAuthTokenRepresentative,
       CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
@@ -17,7 +17,7 @@ where Token: Model & Content & OAuthTokenRepresentative,
     }
     
     /*
-     See `OAuthable` protocol's explanation for insight about below stuff.
+     See ``OAuthable`` protocol's explanation for insight about below stuff.
      */
     
     public let clientId: String
@@ -67,7 +67,7 @@ extension RedditOAuthProvider {
     
     /// Forces Reddit to produce a refreshable token.
     ///
-    /// Reddit Explanation @ https://github.com/reddit-archive/reddit/wiki/OAuth2:
+    /// Reddit Explanation @ [Reddit Website](https://github.com/reddit-archive/reddit/wiki/OAuth2):
     /// "Indicates whether or not your app needs a permanent token. All bearer tokens expire after 1 hour. If you indicate you need permanent access to a user's account, you will additionally receive a refresh_token when acquiring the bearer token. You may use the refresh_token to acquire a new bearer token after your current token expires. Choose temporary if you're completing a one-time request for the user (such as analyzing their recent comments); choose permanent if you will be performing ongoing tasks for the user, such as notifying them whenever they receive a private message. The implicit grant flow does not allow permanent tokens."
     ///
     /// Passing this as `extraArg` in funcs like `requestAuthorization(_:state:extraArg:)`
@@ -89,6 +89,7 @@ extension Issuer {
 
 extension RedditOAuthProvider: ExplicitFlowAuthorizable { }
 extension RedditOAuthProvider: ClientFlowAuthorizable { }
+extension RedditOAuthProvider: OAuthTokenRefreshable { }
 extension RedditOAuthProvider: OAuthTokenRevocable {
     public var revocationUrl: String {
         "https://www.reddit.com/api/v1/revoke_token"

@@ -8,9 +8,10 @@ public protocol OAuthTokenRevocable: OAuthable, OAuthTokenBasicAuthRequirement {
 
 extension OAuthTokenRevocable {
     
-    /// The request to revoke a token with.
-    ///
-    /// - Throws: OAuthableError in case of error.
+    /// The client request to revoke a token with.
+    /// - Parameter accessToken: The access-token-string to revoke.
+    /// - Throws: ``OAuthableError``.
+    /// - Returns: A `ClientRequest` to send to revoke a token with.
     private func revokeTokenRequest(accessToken: String) throws -> ClientRequest {
         let queryParams = QueryParameters.init(
             clientId: self.clientId,
@@ -34,9 +35,10 @@ extension OAuthTokenRevocable {
     }
     
     /// Immediately tries to revoke the token.
-    ///
-    /// - Throws: OAuthableError in case of error.
-    /// - Returns: A Void signal indicating success.
+    /// - Parameters:
+    ///   - req: The `Request`.
+    ///   - accessToken: The access-token-string to revoke.
+    /// - Returns: A `Void` signal indicating success.
     public func revokeToken(_ req: Request, accessToken: String) -> EventLoopFuture<Void> {
         let clientRequest = req.eventLoop.tryFuture {
             try self.revokeTokenRequest(accessToken: accessToken)
