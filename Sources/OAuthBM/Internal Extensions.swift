@@ -1,6 +1,6 @@
-import Vapor
 
 extension ByteBuffer {
+    
     /// Content string of a ByteBuffer.
     var contentString: String {
         .init(decoding: self.readableBytesView, as: UTF8.self)
@@ -8,13 +8,13 @@ extension ByteBuffer {
 }
 
 extension String {
+    
     /// Creates a random string.
     /// - Parameters:
     ///   - length: length of the string.
     /// - Returns: a random string.
     static func random(length: Int) -> String {
-        let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-            .map({ $0 })
+        let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".map({ $0 })
         let indices = 0..<letters.count
         let randomInts = (0..<length).map { _ in
             Int.random(in: indices)
@@ -25,7 +25,8 @@ extension String {
 }
 
 extension EventLoopFuture {
-    /// A version of `.flatMap` which can throw as well.
+    
+    /// A version of `flatMap` that can throw as well.
     func tryFlatMap<NewValue>(
         file: StaticString = #file,
         line: UInt = #line,

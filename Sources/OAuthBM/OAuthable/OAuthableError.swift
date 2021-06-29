@@ -1,4 +1,3 @@
-import Vapor
 
 /// Errors that can be thrown by OAuthable's declarations.
 public enum OAuthableError: AbortError {
@@ -13,14 +12,14 @@ public enum OAuthableError: AbortError {
     public var reason: String {
         switch self {
         case let .providerError(_, error):
-            return "Provider failed with error: \(error.description)"
+            return "Provider failed. Error: \(error.errorDescription)"
         case let .serverError(_, error):
-            return "Server failed with error: \(error.description)"
+            return "Server failed. Error: \(error.errorDescription)"
         }
     }
     
-    /// Status code of the error.
-    public var status: HTTPResponseStatus {
+    /// Status code of this error.
+    public var status: HTTPStatus {
         switch self {
         case .providerError(let status, _): return status
         case .serverError(let status, _): return status
@@ -28,44 +27,21 @@ public enum OAuthableError: AbortError {
     }
 }
 
-/// Equatable Conformance.
+/// ``Equatable`` Conformance.
 extension OAuthableError: Equatable {
     public static func == (lhs: OAuthableError, rhs: OAuthableError) -> Bool {
         lhs.reason == rhs.reason
     }
 }
 
-//MARK: - ServerError
-
-extension OAuthableError {
-    public enum ServerError: Equatable {
-        case invalidCookie
-        case stateDecode(state: String)
-        case queryParametersEncode(policy: QueryParametersPolicy)
-        case unknown(error: String?)
-        
-        fileprivate var description: String {
-            switch self {
-            case .invalidCookie:
-                return "Could not approve the legitimacy of your request. Please use a web"
-                    + " browser that allows cookies (e.g. Google Chrome, Firefox, Microsoft Edge)"
-                    + " , or enable cookies for this website."
-            case .stateDecode(let state):
-                return "Could not decode state \(state.debugDescription)."
-            case .queryParametersEncode(let policy):
-                return "Failed to encode query parameters into"
-                    + " the request using policy `\(policy.rawValue)`."
-            case .unknown(let error): return "UNKNOWN: " + (error ?? "NIL")
-            }
-        }
-        
-    }
-}
-
 //MARK: - ProviderError
 
 extension OAuthableError {
+    
+    /// Errors thrown by the provider.
     public enum ProviderError: Equatable {
+        
+        // These below cases are the usual errors an OAuth provider might throw.
         case unsupportedOverHttp
         case versionRejected
         case parameterAbsent
@@ -83,8 +59,11 @@ extension OAuthableError {
         case invalidCallback
         case invalidClientSecret
         case invalidGrant
+        case invalidScope
+        /// Unknown error.
         case unknown(error: String?)
         
+        /// The raw-value of an error which most providers will use.
         private var rawValue: String {
             switch self {
             case .unsupportedOverHttp: return "unsupported_over_http"
@@ -104,10 +83,12 @@ extension OAuthableError {
             case .invalidCallback: return "invalid_callback"
             case .invalidClientSecret: return "invalid_client_secret"
             case .invalidGrant: return "invalid_grant"
+            case .invalidScope: return "invalid_scope"
             case .unknown: return ""
             }
         }
         
+        /// All possible cases of an ``ProviderError``.
         private static let allCases: [Self] = [
             .unsupportedOverHttp,
             .versionRejected,
@@ -126,55 +107,110 @@ extension OAuthableError {
             .invalidCallback,
             .invalidClientSecret,
             .invalidGrant,
+            .invalidScope,
             .unknown(error: ""),
         ]
         
-        fileprivate var description: String {
+        /// A description for a ``ProviderError``.
+        private var description: String {
             switch self {
             case .unsupportedOverHttp:
-                return "OAuth 2.0 only supports the calls over https."
+                return "OAuth 2.0 only supports the calls over https"
             case .versionRejected:
-                return "An unsupported version of OAuth was supplied."
+                return "An unsupported version of OAuth was supplied"
             case .parameterAbsent:
-                return "A required parameter is missing from the request."
+                return "A required parameter is missing from the request"
             case .parameterRejected:
-                return "A parameter was too long."
+                return "A parameter was too long"
             case .invalidClient:
-                return "An invalid client ID was given."
+                return "An invalid client ID was given"
             case .invalidRequest:
-                return "An invalid request parameter was given."
+                return "An invalid request parameter was given"
             case .unsupportedResponseType:
-                return "The provided response type does not match the request."
+                return "The provided response type does not match the request"
             case .unsupportedGrantType:
-                return "The provided grant type does not match the request."
+                return "The provided grant type does not match the request"
             case .invalidParam:
-                return "An invalid request parameter was provided."
+                return "An invalid request parameter was provided"
             case .unauthorizedClient:
-                return "The client is not given permissions to perform this action."
+                return "The client is not given permissions to perform this action"
             case .accessDenied:
-                return "The resource owner refused the request for authorization."
+                return "The resource owner refused the request for authorization"
             case .serverError:
-                return "An unexpected error happened."
+                return "An unexpected error happened"
             case .tokenExpired:
-                return "The provided token has expired."
+                return "The provided token has expired"
             case .invalidToken:
-                return "The provided token was invalid."
+                return "The provided token was invalid"
             case .invalidCallback:
-                return "The provided callback URI does not match the consumer key."
+                return "The provided callback URI does not match the consumer key"
             case .invalidClientSecret:
-                return "The provided client secret is invalid."
+                return "The provided client secret is invalid"
             case .invalidGrant:
-                return "The provided token has either expired or is invalid."
+                return "The provided token has either expired or is invalid"
+            case .invalidScope:
+                return "The requested scope is invalid, unknown, or malformed"
             case .unknown(let error): return "UNKNOWN: " + (error ?? "NIL")
             }
         }
         
+        /// A description to be used when throwing errors.
+        fileprivate var errorDescription: String {
+            switch self {
+            case .unknown(let errorString): return "[UNKNOWN: \(errorString ?? "NIL")]"
+            default: return "[error: \(self.rawValue), description: \(self.description)]"
+            }
+        }
+        
+        /// Initialize an instance by matching raw-values.
         init? (rawValue: String) {
             guard !rawValue.replacingOccurrences(of: " ", with: "").isEmpty,
-                  let value = Self.allCases.first(where: { $0.rawValue == rawValue }) else {
-                return nil
-            }
+                  let value = Self.allCases.first(where: { $0.rawValue == rawValue })
+            else { return nil }
             self = value
         }
+        
+        /// Initialize an instance by matching descriptions.
+        init? (fromDescription desc: String) {
+            guard let value = Self.allCases.first(where: { $0.description.contains(desc) })
+            else { return nil }
+            self = value
+        }
+    }
+}
+
+
+//MARK: - ServerError
+
+extension OAuthableError {
+    
+    /// Errors thrown by the server.
+    public enum ServerError: Equatable {
+        
+        /// App failure to use cookies.
+        case invalidCookies
+        /// Failure to decode an ``StateContainer``.
+        case stateDecode(state: String)
+        /// Failure to encode query-parameters into a `ClientRequest`.
+        case queryParametersEncode(policy: QueryParametersPolicy)
+        /// Unknown error.
+        case unknown(error: String?)
+        
+        /// A description to be used when throwing errors.
+        fileprivate var errorDescription: String {
+            switch self {
+            case .invalidCookies:
+                return "[Could not approve the legitimacy of your request. Please use a web"
+                    + " browser that allows cookies (e.g. Google Chrome, Firefox, Microsoft Edge)"
+                    + " , or enable cookies for this website.]"
+            case .stateDecode(let state):
+                return "[Could not decode state \(state.debugDescription).]"
+            case .queryParametersEncode(let policy):
+                return "[Failed to encode query parameters into"
+                    + " the request using policy `\(policy.rawValue)`.]"
+            case .unknown(let error): return "[UNKNOWN: \(error ?? "NIL")]"
+            }
+        }
+        
     }
 }
