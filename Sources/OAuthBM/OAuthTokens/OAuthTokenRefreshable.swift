@@ -38,6 +38,11 @@ extension OAuthTokenRefreshable {
     /// - Returns: A fresh token.
     public func refreshToken(_ req: Request, refreshToken: String)
     -> EventLoopFuture<RetrievedToken> {
+        req.logger.trace("Will try to refresh token.", metadata: [
+            "type": .string("\(Self.self)"),
+            "refreshToken": .string(refreshToken),
+        ])
+        
         let clientRequest = req.eventLoop.tryFuture {
             try self.refreshTokenRequest(refreshToken: refreshToken)
         }
