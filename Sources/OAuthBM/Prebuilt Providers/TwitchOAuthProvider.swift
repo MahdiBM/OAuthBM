@@ -79,7 +79,7 @@ extension TwitchOAuthProvider {
 //MARK: - Issuer
 
 extension Issuer {
-    static let twitch = Self(rawValue: "twitch")
+    public static let twitch = Self(rawValue: "twitch")
 }
 
 //MARK: - Enable related OAuth tasks

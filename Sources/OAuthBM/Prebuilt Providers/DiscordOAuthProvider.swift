@@ -105,7 +105,7 @@ extension DiscordOAuthProvider {
 //MARK: - Issuer
 
 extension Issuer {
-    static let discord = Self(rawValue: "discord")
+    public static let discord = Self(rawValue: "discord")
 }
 
 //MARK: - Enable related OAuth tasks
