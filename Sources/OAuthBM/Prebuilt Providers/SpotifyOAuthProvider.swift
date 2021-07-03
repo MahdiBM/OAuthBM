@@ -72,7 +72,7 @@ extension SpotifyOAuthProvider {
 //MARK: - Issuer
 
 extension Issuer {
-    static let spotify = Self(rawValue: "spotify")
+    public static let spotify = Self(rawValue: "spotify")
 }
 
 //MARK: - Enable related OAuth tasks
