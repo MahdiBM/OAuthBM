@@ -25,6 +25,7 @@ extension OAuthTokenBasicAuthRequirement where Self: OAuthable {
     internal func injectBasicAuthHeadersIfNeeded(to clientRequest: inout ClientRequest) {
         guard self.tokenRequestsRequireBasicAuthentication else { return }
         clientRequest.headers.basicAuthorization = .init(
-            username: self.clientId, password: self.clientSecret)
+            username: self.clientId, password: self.clientSecret
+        )
     }
 }

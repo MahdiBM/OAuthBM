@@ -91,7 +91,7 @@ extension GithubOAuthProvider {
 //MARK: - Issuer
 
 extension Issuer {
-    static let github = Self(rawValue: "github")
+    public static let github = Self(rawValue: "github")
 }
 
 //MARK: - Enable related OAuth tasks

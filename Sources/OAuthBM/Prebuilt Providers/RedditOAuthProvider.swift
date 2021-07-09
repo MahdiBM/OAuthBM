@@ -86,7 +86,7 @@ extension RedditOAuthProvider {
 //MARK: - Issuer
 
 extension Issuer {
-    static let reddit = Self(rawValue: "reddit")
+    public static let reddit = Self(rawValue: "reddit")
 }
 
 //MARK: - Enable related OAuth tasks
