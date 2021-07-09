@@ -20,45 +20,49 @@ where Token: Model & Content & OAuthTokenRepresentative,
      See ``OAuthable`` protocol's explanation for insight about below stuff.
      */
     
+    public typealias Scopes = RedditOAuthScopes
+    
     public let clientId: String
     public let clientSecret: String
     public let authorizationUrl = "https://www.reddit.com/api/v1/authorize"
     public let tokenUrl = "https://www.reddit.com/api/v1/access_token"
     public let queryParametersPolicy: Policy = .useUrlEncodedForm
     public let issuer: Issuer = .reddit
-    
-    /// Scopes that you can request authorization for.
-    /// 
-    /// See [Reddit Scopes](https://www.reddit.com/dev/api/oauth) for more info.
-    public enum Scopes: String, CaseIterable {
-        case account = "account"
-        case creddits = "creddits"
-        case edit = "edit"
-        case flair = "flair"
-        case history = "history"
-        case identity = "identity"
-        case liveManage = "livemanage"
-        case modConfig = "modconfig"
-        case modContributors = "modcontributors"
-        case modFlair = "modflair"
-        case modLog = "modlog"
-        case modMail = "modmail"
-        case modOthers = "modothers"
-        case modPosts = "modposts"
-        case modSelf = "modself"
-        case modWiki = "modwiki"
-        case mySubreddits = "mysubreddits"
-        case privateMessages = "privatemessages"
-        case read = "read"
-        case report = "report"
-        case save = "save"
-        case structuredStyles = "structuredstyles"
-        case submit = "submit"
-        case subscribe = "subscribe"
-        case vote = "vote"
-        case wikiEdit = "wikiedit"
-        case wikiRead = "wikiread"
-    }
+}
+
+//MARK: - Scopes
+
+/// Scopes that you can request authorization for.
+///
+/// See [Reddit Scopes](https://www.reddit.com/dev/api/oauth) for more info.
+public enum RedditOAuthScopes: String, CaseIterable {
+    case account = "account"
+    case creddits = "creddits"
+    case edit = "edit"
+    case flair = "flair"
+    case history = "history"
+    case identity = "identity"
+    case liveManage = "livemanage"
+    case modConfig = "modconfig"
+    case modContributors = "modcontributors"
+    case modFlair = "modflair"
+    case modLog = "modlog"
+    case modMail = "modmail"
+    case modOthers = "modothers"
+    case modPosts = "modposts"
+    case modSelf = "modself"
+    case modWiki = "modwiki"
+    case mySubreddits = "mysubreddits"
+    case privateMessages = "privatemessages"
+    case read = "read"
+    case report = "report"
+    case save = "save"
+    case structuredStyles = "structuredstyles"
+    case submit = "submit"
+    case subscribe = "subscribe"
+    case vote = "vote"
+    case wikiEdit = "wikiedit"
+    case wikiRead = "wikiread"
 }
 
 //MARK: - Other declarations

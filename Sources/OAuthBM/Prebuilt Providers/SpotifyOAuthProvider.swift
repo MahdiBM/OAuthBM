@@ -20,37 +20,41 @@ CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
      See ``OAuthable`` protocol's explanation for insight about below stuff.
      */
     
+    public typealias Scopes = SpotifyOAuthScopes
+    
     public let clientId: String
     public let clientSecret: String
     public let authorizationUrl = "https://accounts.spotify.com/authorize"
     public let tokenUrl = "https://accounts.spotify.com/api/token"
     public let queryParametersPolicy: Policy = .useUrlEncodedForm
     public let issuer: Issuer = .spotify
-    
-    /// Scopes that you can request authorization for.
-    ///
-    /// See [Spotify Scopes](https://developer.spotify.com/documentation/general/guides/scopes/) for more info.
-    public enum Scopes: String, CaseIterable {
-        case ugcImageUpload = "ugc-image-upload"
-        case userReadRecentlyPlayed = "user-read-recently-played"
-        case userTopRead = "user-top-read"
-        case userReadPlaybackPosition = "user-read-playback-position"
-        case userReadPlaybackState = "user-read-playback-state"
-        case userModifyPlaybackState = "user-modify-playback-state"
-        case userReadCurrentlyPlaying = "user-read-currently-playing"
-        case appRemoteControl = "app-remote-control"
-        case streaming = "streaming"
-        case playlistModifyPublic = "playlist-modify-public"
-        case playlistModifyPrivate = "playlist-modify-private"
-        case playlistReadPrivate = "playlist-read-private"
-        case playlistReadCollaborative = "playlist-read-collaborative"
-        case userFollowModify = "user-follow-modify"
-        case userFollowRead = "user-follow-read"
-        case userLibraryModify = "user-library-modify"
-        case userLibraryRead = "user-library-read"
-        case userReadEmail = "user-read-email"
-        case userReadPrivate = "user-read-private"
-    }
+}
+
+//MARK: - Scopes
+
+/// Scopes that you can request authorization for.
+///
+/// See [Spotify Scopes](https://developer.spotify.com/documentation/general/guides/scopes/) for more info.
+public enum SpotifyOAuthScopes: String, CaseIterable {
+    case ugcImageUpload = "ugc-image-upload"
+    case userReadRecentlyPlayed = "user-read-recently-played"
+    case userTopRead = "user-top-read"
+    case userReadPlaybackPosition = "user-read-playback-position"
+    case userReadPlaybackState = "user-read-playback-state"
+    case userModifyPlaybackState = "user-modify-playback-state"
+    case userReadCurrentlyPlaying = "user-read-currently-playing"
+    case appRemoteControl = "app-remote-control"
+    case streaming = "streaming"
+    case playlistModifyPublic = "playlist-modify-public"
+    case playlistModifyPrivate = "playlist-modify-private"
+    case playlistReadPrivate = "playlist-read-private"
+    case playlistReadCollaborative = "playlist-read-collaborative"
+    case userFollowModify = "user-follow-modify"
+    case userFollowRead = "user-follow-read"
+    case userLibraryModify = "user-library-modify"
+    case userLibraryRead = "user-library-read"
+    case userReadEmail = "user-read-email"
+    case userReadPrivate = "user-read-private"
 }
 
 //MARK: - Other declarations

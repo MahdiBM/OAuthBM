@@ -20,44 +20,48 @@ CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
      See ``OAuthable`` protocol's explanation for insight about below stuff.
      */
     
+    public typealias Scopes = TwitchOAuthScopes
+    
     public let clientId: String
     public let clientSecret: String
     public let authorizationUrl = "https://id.twitch.tv/oauth2/authorize"
     public let tokenUrl = "https://id.twitch.tv/oauth2/token"
     public let queryParametersPolicy: Policy = .useUrlEncodedForm
     public let issuer: Issuer = .twitch
-    
-    /// Scopes that you can request authorization for.
-    ///
-    /// See [Twitch Scopes](https://dev.twitch.tv/docs/authentication#scopes) for more info.
-    public enum Scopes: String, CaseIterable {
-        case analyticsReadExtensions = "analytics:read:extensions"
-        case analyticsReadGames = "analytics:read:games"
-        case bitsRead = "bits:read"
-        case channelEditCommercial = "channel:edit:commercial"
-        case channelManageBroadcast = "channel:manage:broadcast"
-        case channelManageExtensions = "channel:manage:extensions"
-        case channelManageRedemptions = "channel:manage:redemptions"
-        case channelManageVideos = "channel:manage:videos"
-        case channelReadEditors = "channel:read:editors"
-        case channelReadHypeTrain = "channel:read:hype_train"
-        case channelReadRedemptions = "channel:read:redemptions"
-        case channelReadStreamKey = "channel:read:stream_key"
-        case channelReadSubscriptions = "channel:read:subscriptions"
-        case clipsEdit = "clips:edit"
-        case moderationRead = "moderation:read"
-        case userEdit = "user:edit"
-        case userEditFollows = "user:edit:follows"
-        case userReadBlockedUsers = "user:read:blocked_users"
-        case userManageBlockedUsers = "user:manage:blocked_users"
-        case userReadBroadcast = "user:read:broadcast"
-        case userReadEmail = "user:read:email"
-        case channelModerate = "channel:moderate"
-        case chatEdit = "chat:edit"
-        case chatRead = "chat:read"
-        case whispersRead = "whispers:read"
-        case whispersEdit = "whispers:edit"
-    }
+}
+
+//MARK: - Scopes
+
+/// Scopes that you can request authorization for.
+///
+/// See [Twitch Scopes](https://dev.twitch.tv/docs/authentication#scopes) for more info.
+public enum TwitchOAuthScopes: String, CaseIterable {
+    case analyticsReadExtensions = "analytics:read:extensions"
+    case analyticsReadGames = "analytics:read:games"
+    case bitsRead = "bits:read"
+    case channelEditCommercial = "channel:edit:commercial"
+    case channelManageBroadcast = "channel:manage:broadcast"
+    case channelManageExtensions = "channel:manage:extensions"
+    case channelManageRedemptions = "channel:manage:redemptions"
+    case channelManageVideos = "channel:manage:videos"
+    case channelReadEditors = "channel:read:editors"
+    case channelReadHypeTrain = "channel:read:hype_train"
+    case channelReadRedemptions = "channel:read:redemptions"
+    case channelReadStreamKey = "channel:read:stream_key"
+    case channelReadSubscriptions = "channel:read:subscriptions"
+    case clipsEdit = "clips:edit"
+    case moderationRead = "moderation:read"
+    case userEdit = "user:edit"
+    case userEditFollows = "user:edit:follows"
+    case userReadBlockedUsers = "user:read:blocked_users"
+    case userManageBlockedUsers = "user:manage:blocked_users"
+    case userReadBroadcast = "user:read:broadcast"
+    case userReadEmail = "user:read:email"
+    case channelModerate = "channel:moderate"
+    case chatEdit = "chat:edit"
+    case chatRead = "chat:read"
+    case whispersRead = "whispers:read"
+    case whispersEdit = "whispers:edit"
 }
 
 //MARK: - Other declarations
