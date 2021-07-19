@@ -23,7 +23,11 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
     ///   - customValue: The ``customValue``.
     ///   - callbackUrl: The ``callbackUrl``.
     ///   - randomValue: The ``randomValue``.
-    internal init(customValue: String, callbackUrl: CallbackUrls, randomValue: String) {
+    internal init(
+        customValue: String,
+        callbackUrl: CallbackUrls,
+        randomValue: String
+    ) {
         self.customValue = customValue
         self.callbackUrl = callbackUrl
         self.randomValue = randomValue
@@ -33,7 +37,10 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
     /// - Parameters:
     ///   - customValue: The ``customValue``.
     ///   - callbackUrl: The ``callbackUrl``.
-    public init(customValue: String = "", callbackUrl: CallbackUrls) {
+    public init(
+        customValue: String = "",
+        callbackUrl: CallbackUrls
+    ) {
         self.customValue = customValue
         self.callbackUrl = callbackUrl
         self.randomValue = .random(length: lengthOfRandomValue)
@@ -54,7 +61,9 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
     /// - Parameter session: The ``Session``.
     /// - Throws: ``OAuthableError``.
     /// - Returns: The extracted value.
-    internal static func extract(from session: Session) throws -> Self {
+    internal static func extract(
+        from session: Session
+    ) throws -> Self {
         let oauthbmData = session.data.oauthbm
         guard let customValue = oauthbmData.customValue,
               let callbackUrlStr = oauthbmData.callbackUrl,
@@ -74,7 +83,9 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
     /// Decodes an instance of ``OAuthable/State`` from the container.
     /// - Parameter container: The `URLQueryContainer`.
     /// - Throws: ``OAuthableError``.
-    internal init(decodeFrom container: URLQueryContainer) throws {
+    internal init(
+        decodeFrom container: URLQueryContainer
+    ) throws {
         
         var error: OAuthableError {
             let stateDesc = container[String.self, at: "state"]?.debugDescription ?? "NIL"
@@ -91,7 +102,9 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
             throw error
         }
         
-        guard values.count == 3, let callbackUrl = CallbackUrls(rawValue: values[1]) else {
+        guard values.count == 3,
+              let callbackUrl = CallbackUrls(rawValue: values[1])
+        else {
             throw error
         }
         
@@ -103,9 +116,12 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
 
 //MARK: - `Equatable` conformance
 extension StateContainer: Equatable {
-    public static func ==<A, B> (lhs: StateContainer<A>, rhs: StateContainer<B>) -> Bool {
-        lhs.randomValue == rhs.randomValue &&
+    public static func ==<A, B> (
+        lhs: StateContainer<A>,
+        rhs: StateContainer<B>
+    ) -> Bool {
+        lhs.customValue == rhs.customValue &&
         lhs.callbackUrl.rawValue == rhs.callbackUrl.rawValue &&
-        lhs.customValue == rhs.customValue
+        lhs.randomValue == rhs.randomValue
     }
 }

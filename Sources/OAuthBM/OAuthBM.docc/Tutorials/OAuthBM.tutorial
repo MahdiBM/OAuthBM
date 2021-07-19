@@ -1,0 +1,24 @@
+@Tutorials(name: "OAuthBM") {
+    @Intro(title: "How To Use OAuthBM") {
+        ``OAuthBM`` is easy to use, but requires some preparation.
+        Here you'll learn how to create a new supporting-type for your OAuth-2 provider,
+        and how to get ``OAuthBM`` working.
+        
+    }
+    
+    @Chapter(name: "Supporting New Providers") {
+        @Image(source: doc.fill.badge.plus.png, alt: "A piece of paper with a plus sign on button left of it.")
+        
+        Create a custom supporting-type for your provider if its not already supported
+        
+        @TutorialReference(tutorial: "doc:SupportingNewProviders")
+    }
+    
+    @Chapter(name: "Using OAuthBM") {
+        @Image(source: hare.fill.png, alt: "A rabbit running.")
+        
+        Learn how to get ``OAuthBM`` working
+        
+        @TutorialReference(tutorial: "doc:UsingOAuthBM")
+    }
+}

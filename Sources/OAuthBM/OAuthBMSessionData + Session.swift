@@ -12,9 +12,9 @@ public extension SessionData {
 /// Session values related to OAuthBM.
 public struct OAuthBMSessionData {
     
-    /// Custom value entered by app.
+    /// Optional custom value that is entered by you.
     public let customValue: String?
-    /// CallbackUrl that should be called after the process by the provider.
+    /// The CallbackUrl that is called by the provider, after the user-authorization process.
     public let callbackUrl: String?
     /// Random value to make this state unpredictable.
     internal let randomValue: String?
@@ -22,9 +22,9 @@ public struct OAuthBMSessionData {
     /// Initializes an instance from the provided session.
     /// - Parameter session: The session to extract session-data from.
     fileprivate init(session: SessionData) {
-        self.customValue = session[Keys.customValue.rawValue]
-        self.callbackUrl = session[Keys.callbackUrl.rawValue]
-        self.randomValue = session[Keys.randomValue.rawValue]
+        self.customValue = session[Keys.customValue]
+        self.callbackUrl = session[Keys.callbackUrl]
+        self.randomValue = session[Keys.randomValue]
     }
     
     /// Sets the ``OAuthBMSessionData`` related parameters to the entered values.
@@ -39,15 +39,15 @@ public struct OAuthBMSessionData {
         callbackUrl: String?,
         randomValue: String?
     ) {
-        session.data[Keys.customValue.rawValue] = customValue
-        session.data[Keys.callbackUrl.rawValue] = callbackUrl
-        session.data[Keys.randomValue.rawValue] = randomValue
+        session.data[Keys.customValue] = customValue
+        session.data[Keys.callbackUrl] = callbackUrl
+        session.data[Keys.randomValue] = randomValue
     }
     
     /// The session-keys of the values of ``OAuthBMSessionData``.
-    private enum Keys: String {
-        case customValue = "_OAuthBM_customValue"
-        case callbackUrl = "_OAuthBM_callbackUrl"
-        case randomValue = "_OAuthBM_randomValue"
+    private enum Keys {
+        static let customValue = "_OAuthBM_customValue"
+        static let callbackUrl = "_OAuthBM_callbackUrl"
+        static let randomValue = "_OAuthBM_randomValue"
     }
 }

@@ -15,16 +15,20 @@ public protocol OAuthTokenRepresentative {
     /// Initializer for a token. You should also save the token into the db.
     ///
     /// A `Request`, a ``RetrievedToken`` and the oldToken (if available) are passed
-    /// to this func and in return, a new token is expected to be returned.
-    /// Using this instead of a normal `init` is only because this is much more
-    /// dynamic and much less restrictive.
+    /// to this func and in return, a new token is expected to be saved into the
+    /// database and  returned.
+    /// Using a function instead of a normal `init` is only due to this being much
+    /// more dynamic and much less restrictive.
     ///
     /// - Parameters:
     ///   - request: The `Request`.
     ///   - token: The ``RetrievedToken``.
     ///   - oldToken: The old token if available.
-    static func initializeAndSave(request: Request, token: RetrievedToken, oldToken: Self?)
-    throws -> EventLoopFuture<Self>
+    static func initializeAndSave(
+        request: Request,
+        token: RetrievedToken,
+        oldToken: Self?
+    ) throws -> EventLoopFuture<Self>
 }
 
 extension OAuthTokenRepresentative {
@@ -80,7 +84,7 @@ extension OAuthTokenRepresentative {
     }
     
     /// Whether or not we can refresh this token.
-    var tokenIsRefreshable: Bool {
+    var isRefreshableToken: Bool {
         !self.refreshToken.isEmpty
     }
 }

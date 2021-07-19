@@ -1,5 +1,7 @@
 // swift-tools-version:5.4
 
+/** Change to `swift-tools-version:5.5` or higher, if you want to try/use the DocC tutorials. */
+
 import PackageDescription
 
 let package = Package(
@@ -22,6 +24,9 @@ let package = Package(
                 .product(name: "Fluent", package: "fluent"),
                 .product(name: "FluentPostgresDriver", package: "fluent-postgres-driver"),
                 .product(name: "Vapor", package: "vapor"),
-            ])
+            ],
+            /// Not needed if `swift-tools-version:5.5` or higher.
+            resources: [.copy("OAuthBM.docc")]
+        ),
     ]
 )

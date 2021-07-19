@@ -25,10 +25,14 @@ public struct RetrievedToken: Content {
 }
 
 extension RetrievedToken {
+    
     /// Converts `Self` to an `OAuthToken` and saves it to db.
-    public func saveToDb<Token>(req: Request, oldToken: Token?)
-    -> EventLoopFuture<Token> where Token: OAuthTokenRepresentative {
-        return req.eventLoop.future().tryFlatMap {
+    internal func saveToDb<Token>(
+        req: Request,
+        oldToken: Token?
+    ) -> EventLoopFuture<Token>
+    where Token: OAuthTokenRepresentative {
+        req.eventLoop.future().tryFlatMap {
             try Token.initializeAndSave(request: req, token: self, oldToken: oldToken)
         }
     }
@@ -89,7 +93,10 @@ extension DecodedToken: Content {
 extension DecodedToken {
     
     /// Converts a ``DecodedToken`` to a ``RetrievedToken``,
-    func convertToRetrievedToken(issuer: Issuer, flow: RetrievedToken.Flow) -> RetrievedToken {
+    func convertToRetrievedToken(
+        issuer: Issuer,
+        flow: RetrievedToken.Flow
+    ) -> RetrievedToken {
         let scopesFromScope: [String]
         if let scope = self.scope {
             scopesFromScope = scope.contains(",") ?

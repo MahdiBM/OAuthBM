@@ -13,7 +13,9 @@ extension WebAppFlowAuthorizable {
     ///   - state: The ``OAuthable/State`` of the request.
     ///   - scopes: The ``OAuthable/Scopes`` to request authorization for.
     /// - Returns: A URL string to redirect users to.
-    private func webAppAuthorizationRedirectUrl(state: State) -> String {
+    private func webAppAuthorizationRedirectUrl(
+        state: State
+    ) -> String {
         let queryParams = QueryParameters.init(
             clientId: self.clientId,
             redirectUri: state.callbackUrl.rawValue,
@@ -54,8 +56,9 @@ extension WebAppFlowAuthorizable {
     ///
     /// - Parameter req: The `Request`.
     /// - Returns: The ``OAuthable/State`` of the request.
-    public func webAppAuthorizationCallback(_ req: Request)
-    -> EventLoopFuture<(state: State, token: RetrievedToken)> {
+    public func webAppAuthorizationCallback(
+        _ req: Request
+    ) -> EventLoopFuture<(state: State, token: RetrievedToken)> {
         req.logger.trace("OAuth2 web app authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
@@ -98,8 +101,10 @@ extension WebAppFlowAuthorizable {
     ///   - code: The code-string to request authorization with.
     /// - Throws: ``OAuthableError``.
     /// - Returns: A `ClientRequest` to send to acquire a web-app access token with.
-    private func webAppAccessTokenRequest(state: State, code: String)
-    throws -> ClientRequest {
+    private func webAppAccessTokenRequest(
+        state: State,
+        code: String
+    ) throws -> ClientRequest {
         let queryParams = QueryParameters.init(
             clientId: self.clientId,
             clientSecret: self.clientSecret,

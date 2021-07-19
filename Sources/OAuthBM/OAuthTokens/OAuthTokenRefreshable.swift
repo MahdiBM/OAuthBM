@@ -8,7 +8,9 @@ extension OAuthTokenRefreshable {
     /// - Parameter refreshToken: The refresh-token-string to make a refresh-request for.
     /// - Throws: ``OAuthableError``.
     /// - Returns: A `ClientRequest` to send to refresh a user access token with.
-    private func refreshTokenRequest(refreshToken: String) throws -> ClientRequest {
+    private func refreshTokenRequest(
+        refreshToken: String
+    ) throws -> ClientRequest {
         let queryParams = QueryParameters.init(
             clientId: self.clientId,
             clientSecret: self.clientSecret,
@@ -36,8 +38,10 @@ extension OAuthTokenRefreshable {
     ///   - req: The `Request`.
     ///   - refreshToken: The refresh-token-string to send a refresh-request for.
     /// - Returns: A fresh token.
-    public func refreshToken(_ req: Request, refreshToken: String)
-    -> EventLoopFuture<RetrievedToken> {
+    public func refreshToken(
+        _ req: Request,
+        refreshToken: String
+    ) -> EventLoopFuture<RetrievedToken> {
         req.logger.trace("Will try to refresh token.", metadata: [
             "type": .string("\(Self.self)"),
             "refreshToken": .string(refreshToken),

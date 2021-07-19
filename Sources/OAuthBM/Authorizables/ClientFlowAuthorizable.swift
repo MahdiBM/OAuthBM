@@ -8,7 +8,9 @@ extension ClientFlowAuthorizable {
     /// - Parameter scopes: The ``OAuthable/Scopes`` to request authorization for.
     /// - Throws: ``OAuthableError``.
     /// - Returns: A `ClientRequest` to send to acquire an app access token with.
-    private func appAccessTokenRequest(scopes: [Scopes]) throws -> ClientRequest {
+    private func appAccessTokenRequest(
+        scopes: [Scopes]
+    ) throws -> ClientRequest {
         let queryParams = QueryParameters.init(
             clientId: self.clientId,
             clientSecret: self.clientSecret,
@@ -40,8 +42,10 @@ extension ClientFlowAuthorizable {
     ///   - req: The `Request`.
     ///   - scopes: The ``OAuthable/Scopes`` to request authorization for.
     /// - Returns: A ``RetrievedToken``.
-    public func getAppAccessToken(_ req: Request, scopes: [Scopes] = [])
-    -> EventLoopFuture<RetrievedToken> {
+    public func getAppAccessToken(
+        _ req: Request,
+        scopes: [Scopes] = []
+    ) -> EventLoopFuture<RetrievedToken> {
         let clientRequest = req.eventLoop.tryFuture {
             try self.appAccessTokenRequest(scopes: scopes)
         }

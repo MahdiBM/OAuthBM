@@ -16,13 +16,17 @@ public protocol OAuthTokenBasicAuthRequirement {
 
 extension OAuthTokenBasicAuthRequirement where Self: OAuthable {
     
+    /// Whether or not the request which gets the token from the provider
+    /// requires basic authentication.
     public var tokenRequestsRequireBasicAuthentication: Bool {
         false
     }
     
     /// Injects basic authorization headers to the request if needed.
     /// - Parameter clientRequest: The `ClientRequest` to inject to.
-    internal func injectBasicAuthHeadersIfNeeded(to clientRequest: inout ClientRequest) {
+    internal func injectBasicAuthHeadersIfNeeded(
+        to clientRequest: inout ClientRequest
+    ) {
         guard self.tokenRequestsRequireBasicAuthentication else { return }
         clientRequest.headers.basicAuthorization = .init(
             username: self.clientId, password: self.clientSecret

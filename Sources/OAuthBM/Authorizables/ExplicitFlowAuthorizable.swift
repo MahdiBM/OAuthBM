@@ -61,8 +61,9 @@ extension ExplicitFlowAuthorizable {
     ///
     /// - Parameter req: The `Request`.
     /// - Returns: The ``OAuthable/State`` of the request and the acquired ``RetrievedToken``.
-    public func authorizationCallback(_ req: Request)
-    -> EventLoopFuture<(state: State, token: RetrievedToken)> {
+    public func authorizationCallback(
+        _ req: Request
+    ) -> EventLoopFuture<(state: State, token: RetrievedToken)> {
         req.logger.trace("OAuth2 authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
@@ -103,8 +104,10 @@ extension ExplicitFlowAuthorizable {
     ///   - code: The code-string to request authorization with.
     /// - Throws: ``OAuthableError``.
     /// - Returns: A `ClientRequest` to send to acquire a user access token with.
-    private func userAccessTokenRequest(callbackUrl: CallbackUrls, code: String)
-    throws -> ClientRequest {
+    private func userAccessTokenRequest(
+        callbackUrl: CallbackUrls,
+        code: String
+    ) throws -> ClientRequest {
         let queryParams = QueryParameters.init(
             clientId: self.clientId,
             clientSecret: self.clientSecret,

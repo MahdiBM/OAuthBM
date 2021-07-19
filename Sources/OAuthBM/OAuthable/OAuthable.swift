@@ -1,5 +1,5 @@
 
-/// Basic OAuth-2 requirements.
+/// Basic OAuth-2 requirements for a type to be performed OAuth-2 tasks with.
 public protocol OAuthable {
     
     /// The State container type.

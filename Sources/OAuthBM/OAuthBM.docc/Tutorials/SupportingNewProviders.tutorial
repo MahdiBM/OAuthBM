@@ -1,0 +1,108 @@
+@Tutorial(time: 15) {
+    @Intro(title: "Supporting New Providers") {
+        Here we'll go through building a new supporting-type for OAuth-2 tasks for `Twitch`.
+        
+        Note that ``OAuthBM`` comes with a few prebuilt providers including ``OAuthBM/DiscordOAuthProvider``, ``OAuthBM/GithubOAuthProvider``, ``OAuthBM/RedditOAuthProvider``, ``OAuthBM/SpotifyOAuthProvider`` and ``OAuthBM/TwitchOAuthProvider``.
+        
+        If your provider is not on the list of prebuilt providers, you can follow this tutorial to make your own type that supports the provider you want.
+        
+    }
+    
+    @Section(title: "OAuthable Conformance") {
+        @ContentAndMedia {
+            Create and configure a type to conform to ``OAuthBM/OAuthable``
+            
+        }
+        
+        @Steps {
+            @Step {
+                Make a new type and conform it to ``OAuthBM/OAuthable``.
+                Make sure to satisfy the requirements of ``OAuthBM/OAuthable``.
+                For simplicity, you can copy-paste contents of the following file into your own.
+                We will go into filling all these with correct values one by one.
+                
+                @Code(name: "OAuthProvider.swift", file: NewProvider-01-01.swift)
+            }
+            
+            @Step {
+                `clientId` and `clientSecret` are strings you acquire from your provider.
+                Follow your provider's instructions and make sure you have both of them.
+                
+                @Code(name: "OAuthProvider.swift", file: NewProvider-01-02.swift)
+            }
+            
+            @Step {
+                `authorizationUrl` and `tokenUrl` are endpoints of your provider's API that we will be working with.
+                Read ``OAuthBM/OAuthable/authorizationUrl`` and ``OAuthBM/OAuthable/tokenUrl`` explanation and fill both of them with the correct url that your provider has mentioned in their documentation. 
+                I have filled those with the correct values for `Twitch`.  
+                
+                @Code(name: "OAuthProvider.swift", file: NewProvider-01-03.swift)
+            }
+            
+            @Step {
+                ``OAuthBM/OAuthable/issuer`` is what makes a token unique to you, when you finally acquire the token.
+                Make a static let in an extension over ``OAuthBM/Issuer`` and enter it as the ``OAuthBM/OAuthable/issuer``. I'll name mine `twitch`.
+                
+                @Code(name: "OAuthProvider.swift", file: NewProvider-01-04.swift)
+            }
+            
+            @Step {
+                Now you need to populate the ``OAuthBM/OAuthable/Scopes``. Scopes are what you'll be asking for permission for. ``OAuthBM/OAuthable/Scopes`` are what let you have access to some information/actions of your user. Find them in your provider's documentation and add them to ``OAuthBM/OAuthable/Scopes`` in format `yourPreferredIdentifier = "realScopeName"`.
+                I've filled mine with some  of `Twitch`'s available scopes.
+                
+                @Code(name: "OAuthProvider.swift", file: NewProvider-01-05.swift)
+            }
+            
+            @Step {
+                Lastly, populate your ``OAuthBM/OAuthable/CallbackUrls`` with what you have setup in your provider's panel as your callback urls.
+                
+                @Code(name: "OAuthProvider.swift", file: NewProvider-01-06.swift)
+            }
+        }
+    }
+    
+    @Section(title: "Make It Work!") {
+        @ContentAndMedia {
+            ``OAuthBM/OAuthable`` on its own doesn't do much. In this section you'll learn how to enable the ``OAuthBM/OAuthable`` type you've just built to perform different OAuth-2 actions. 
+            
+        }
+        
+        @Steps {
+            @Step {
+                OAuth-2 supports different flows, so does ``OAuthBM``.
+                Make sure you read your provider's documentation to see which flows they support. 
+                
+            }
+            
+            @Step {
+                Conform your newly made type to all the flow-protocols you want.
+                Flow-protocols don't have any requirements other than the type being 
+                ``OAuthBM/OAuthable``, so you have quite an easy job! 
+            }
+            
+            @Step {
+                Again, make sure you read your own provider's documentation.
+                
+                I read `Twitch`'s documentation and i found out they support 3 different flows: `OAuth authorization code flow`, `OAuth client credentials flow` and `OAuth implicit code flow`. I've conformed my type to the corresponding protocols.
+                
+                @Code(name: "OAuthProviderConformances.swift",
+                      file: NewProvider-02-01.swift)
+            }
+            
+            @Step {
+                ``OAuthBM`` also supports `refreshing` and `revoking` tokens.
+                
+                My provider has mentioned they support both refreshing and revoking tokens, so i'll conform my type to the appropriate protocols to enable refresh and revoke actions.
+                I've also entered my provider's revocation url as needed. 
+                
+                @Code(name: "OAuthProviderConformances.swift",
+                      file: NewProvider-02-02.swift)
+            }
+            
+            @Step {
+                This is it! Your new ``OAuthBM/OAuthable`` type is now ready to use!
+                
+            }
+        }
+    }
+}

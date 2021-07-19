@@ -1,0 +1,130 @@
+@Tutorial(time: 20) {
+    @Intro(title: "Using OAuthBM") {
+        ``OAuthBM`` is easy to use while having lots of flexibility.
+        Here i'll be going through using a supporting-type and authorizing a user 
+        using `OAuth authorization code flow`
+        
+    }
+    
+    @Section(title: "Prerequisites - Provider Support and Sessions") {
+        @ContentAndMedia {
+            Make sure you are ready.
+            
+        }
+        
+        @Steps {
+            @Step {
+                First of all, make sure you are using one of the prebuilt provider's types, or you've built your own. I've gone through building a new supporting-type for your provider in the following tutorial: [](doc:SupportingNewProviders).
+                
+                As you can see, i've got my `TwitchOAuthProvider` ready to use, and i will be using it as a showcase.
+                
+                @Code(name: "OAuthProvider.swift", file: UsingOAuthBM-01-01.swift)
+            }
+            
+            @Step {
+                ``OAuthBM`` relies on [Sessions](https://docs.vapor.codes/4.0/sessions/). Make sure you have [Sessions](https://docs.vapor.codes/4.0/sessions/) enabled in your app. 
+                
+                In my configuration file, i'm using the following code to enable them for myself. Make sure you read [Sessions](https://docs.vapor.codes/4.0/sessions/) documentation to be able to configure it for your own use-case.
+                
+                @Code(name: "Configure.swift", file: UsingOAuthBM-01-02.swift)
+            }
+        }
+    }
+    
+    @Section(title: "Prerequisites - Somewhere to Store Tokens") {
+        @ContentAndMedia {
+            ``OAuthBM`` does work _without_ `Fluent`, but it also has a good amount of 
+            integration with it. In this section we will go through making a table for storing tokens.
+            Some knowledge of `Fluent` is nice to have to start this section.
+            
+        }
+        
+        @Steps {
+            @Step {
+                Make a table and conform it to ``OAuthBM/OAuthTokenRepresentative`` so
+                ``OAuthBM`` knows the table is able to represent an OAuth token.
+                You'll also need the usual `Content` and `Model` conformances that you'd always have in a `Fluent` table type.
+                
+                @Code(name: "OAuthToken.swift", file: UsingOAuthBM-02-01.swift)
+            }
+            
+            @Step {
+                ``OAuthBM`` will call the ``OAuthBM/OAuthTokenRepresentative/initializeAndSave(request:token:oldToken:)`` function for making new tokens.
+                This gives you maximum flexibility as opposed to a normal `init`.
+                Before returning a new Token, you can do anything needed, including 
+                calling other APIs and retrieving more info. You are also not bound to 
+                only using ``OAuthBM/OAuthTokenRepresentative``'s fields in your table and
+                you can add any extra fields that you need.
+                
+                Here i'll be very simple. I'll take the ``OAuthBM/RetrievedToken``,
+                transform to the `OAuthToken` type i just made, **Save it to the database** and finally return it.
+                
+                @Code(name: "OAuthToken.swift", file: UsingOAuthBM-02-02.swift)
+            }
+            
+            @Step {
+                As a note, it's good to know ``OAuthBM/RetrievedToken`` 
+                will contain one more thing. Thats ``OAuthBM/RetrievedToken/Flow-swift.enum`` which indicates which flow the token was created in. It's helpful when you use different flows.
+                
+                If your provider doesn't return a field, lets say ``OAuthBM/OAuthTokenRepresentative/refreshTokenExpiresIn``, 
+                it'll be set to `0` in ``OAuthBM/RetrievedToken`` and won't be `nil`.
+                
+                @Code(name: "OAuthToken.swift", file: UsingOAuthBM-02-02.swift)
+            }
+            
+            @Step {
+                Don't forget to make migrations for your `OAuthToken` type and run them.
+                
+                @Code(name: "OAuthToken Migrations.swift", file: UsingOAuthBM-02-03.swift)
+            }
+            
+            @Step {
+                As the last step in this section, conform your ``OAuthBM/OAuthable`` provider-type to ``OAuthBM/OAuthTokenConvertible``. The only requirement of ``OAuthBM/OAuthTokenConvertible`` is to set a typealias and introduce the `OAuthToken`'s type to your ``OAuthBM/OAuthable`` type.
+                
+                I've added ``OAuthBM/OAuthTokenConvertible`` conformance to my own `TwitchOAuthProvider`.
+                
+                @Code(name: "OAuthProvider.swift", file: UsingOAuthBM-02-04.swift)
+            }
+        }
+    }
+    
+    @Section(title: "Setting Up Routes!") {
+        @ContentAndMedia {
+            Now you are ready to use ``OAuthBM``! 
+            In this section you learn how to set up your routes with ``OAuthBM``.
+            
+        }
+        
+        @Steps {
+            @Step {
+                Based on how OAuth-2 works, you need an endpoint that redirects 
+                anyone who triggers it, to you provider, where they are asked to give your app permissions.
+                
+                I'll put my logic in a function. Remember you need to call the function once before booting so it enables the routes.
+                
+                @Code(name: "Routes.swift", file: UsingOAuthBM-03-01.swift)
+            }
+            
+            @Step {
+                ``OAuthBM`` takes care of of the job and redirects your
+                users to the webpage were they are asked by your provider to give your app permissions. Assuming you want to use the `OAuth authorization code flow`,
+                you just need to call the ``OAuthBM/ExplicitFlowAuthorizable/requestAuthorization(_:state:scopes:extraArg:)`` func. Note that `OAuth implicit code flow` and `OAuth web application flow` each have different funcs for requesting authorization. 
+                
+                So what i need to do is simple. I'll call the ``OAuthBM/ExplicitFlowAuthorizable/requestAuthorization(_:state:scopes:extraArg:)`` func of the ``OAuthBM/OAuthable`` type i have, and i'll pass in the `Request` and the ``OAuthBM/OAuthable/CallbackUrls`` i prefer.
+                
+                @Code(name: "Routes.swift", file: UsingOAuthBM-03-02.swift)
+            }
+            
+            @Step {
+                In the last step in a normal OAuth-2 process, your provider calls 
+                the callback endpoint that you have entered in your provider's panel.
+                You need to register a route for the callback endpoint.
+                ``OAuthBM`` takes care of the authorization process, gives you some context about it, and lets you finish it.
+                
+                I'll call the authorization-callback function related to `OAuth authorization code flow`. Don;t forget other flows have different authorization-callback functions.
+                
+                @Code(name: "Routes.swift", file: UsingOAuthBM-03-03.swift)
+            }
+        }
+    }
+}

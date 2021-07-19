@@ -61,7 +61,9 @@ extension ImplicitFlowAuthorizable {
     ///
     /// - Parameter req: The `Request`.
     /// - Returns: The ``OAuthable/State`` of the request.
-    public func implicitAuthorizationCallback(_ req: Request) -> EventLoopFuture<State> {
+    public func implicitAuthorizationCallback(
+        _ req: Request
+    ) -> EventLoopFuture<State> {
         req.logger.trace("OAuth2 implicit authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])

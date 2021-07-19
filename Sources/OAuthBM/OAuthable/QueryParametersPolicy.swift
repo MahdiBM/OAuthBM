@@ -35,7 +35,7 @@ public enum QueryParametersPolicy: String {
 /// Helps encode query parameters into a request.
 internal struct QueryParameters {
     
-    //MARK: Stuff that might need to be passed as query params into a OAuth-2 request.
+    //MARK: Stuff that might need to be passed as query params into an OAuth-2 request.
     var clientId: String?
     var clientSecret: String?
     var responseType: ResponseType?

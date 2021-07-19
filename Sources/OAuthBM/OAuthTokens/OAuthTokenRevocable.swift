@@ -12,7 +12,9 @@ extension OAuthTokenRevocable {
     /// - Parameter accessToken: The access-token-string to revoke.
     /// - Throws: ``OAuthableError``.
     /// - Returns: A `ClientRequest` to send to revoke a token with.
-    private func revokeTokenRequest(accessToken: String) throws -> ClientRequest {
+    private func revokeTokenRequest(
+        accessToken: String
+    ) throws -> ClientRequest {
         let queryParams = QueryParameters.init(
             clientId: self.clientId,
             clientSecret: self.clientSecret,
@@ -39,7 +41,10 @@ extension OAuthTokenRevocable {
     ///   - req: The `Request`.
     ///   - accessToken: The access-token-string to revoke.
     /// - Returns: A `Void` signal indicating success.
-    public func revokeToken(_ req: Request, accessToken: String) -> EventLoopFuture<Void> {
+    public func revokeToken(
+        _ req: Request,
+        accessToken: String
+    ) -> EventLoopFuture<Void> {
         let clientRequest = req.eventLoop.tryFuture {
             try self.revokeTokenRequest(accessToken: accessToken)
         }
