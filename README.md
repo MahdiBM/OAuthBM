@@ -5,8 +5,8 @@
 ### Getting Started
 
 To get started with `OAuthBM`, take a look at `OAuthBM`'s DocC documentation website.    
-Tutorials are available @ https://oauthbm.mahdibm.com/tutorials/oauthbm   
-and Documentation is available @ https://oauthbm.mahdibm.com/documentation/oauthbm.
+Tutorials are available @ https://oauthbm.mahdibm.com/tutorials   
+and Documentation is available @ https://oauthbm.mahdibm.com/documentation.
 
 ### Contribution
 
