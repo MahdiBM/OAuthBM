@@ -1,33 +1,54 @@
 
-/// Spotify model capable of performing OAuth-2 tasks.
+/// Spotify protocol capable of performing OAuth-2 tasks.
 ///
 /// See ``OAuthable``'s explanations for info about the declarations.
-public struct SpotifyOAuthProvider<Token, CallbackUrls>: OAuthable, OAuthTokenConvertible
-where Token: Model & Content & OAuthTokenRepresentative,
-CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
+public protocol SpotifyOAuthProvider:
+    OAuthTokenConvertible,
+    ExplicitFlowAuthorizable,
+    ImplicitFlowAuthorizable,
+    ClientFlowAuthorizable,
+    OAuthTokenRefreshable
+where Scopes == SpotifyOAuthScopes {
     
-    public init(
-        clientId: String,
-        clientSecret: String,
-        tokenType: Token.Type,
-        callbackUrlsType: CallbackUrls.Type
-    ) {
-        self.clientId = clientId
-        self.clientSecret = clientSecret
-    }
+    var clientId: String { get }
+    var clientSecret: String { get }
+}
+
+//MARK: - Default values
+
+public extension SpotifyOAuthProvider {
+    
+    //MARK: ``OAuthable`` conformance
     
     /*
      See ``OAuthable`` protocol's explanation for insight about below stuff.
      */
     
-    public typealias Scopes = SpotifyOAuthScopes
+    var authorizationUrl: String {
+        "https://accounts.spotify.com/authorize"
+    }
+    var tokenUrl: String {
+        "https://accounts.spotify.com/api/token"
+    }
+    var queryParametersPolicy: Policy {
+        .useUrlEncodedForm
+    }
+    var issuer: Issuer {
+        .spotify
+    }
     
-    public let clientId: String
-    public let clientSecret: String
-    public let authorizationUrl = "https://accounts.spotify.com/authorize"
-    public let tokenUrl = "https://accounts.spotify.com/api/token"
-    public let queryParametersPolicy: Policy = .useUrlEncodedForm
-    public let issuer: Issuer = .spotify
+    //MARK: extras
+    
+    /// Forces provider to show the verify page/dialog again.
+    ///
+    /// Passing this as `extraArg` in funcs like `requestAuthorization(_:state:extraArg:)`
+    /// will force the provider to show the verify page/dialog again to user.
+    /// Without this, provider sometimes shows the page/dialog and sometimes doesn't.
+    /// This is provider specific and is extracted from provider's OAuth documentations.
+    /// This is not an OAuthable requirement, rather something i added for more comfort when needed.
+    var forceVerifyExtraArg: String {
+        "show_dialog=true"
+    }
 }
 
 //MARK: - Scopes
@@ -57,31 +78,8 @@ public enum SpotifyOAuthScopes: String, CaseIterable {
     case userReadPrivate = "user-read-private"
 }
 
-//MARK: - Other declarations
-
-extension SpotifyOAuthProvider {
-    
-    /// Forces provider to show the verify page/dialog again.
-    ///
-    /// Passing this as `extraArg` in funcs like `requestAuthorization(_:state:extraArg:)`
-    /// will force the provider to show the verify page/dialog again to user.
-    /// Without this, provider sometimes shows the page/dialog and sometimes doesn't.
-    /// This is provider specific and is extracted from provider's OAuth documentations.
-    /// This is not an OAuthable requirement, rather something i added for more comfort when needed.
-    var forceVerifyExtraArg: String {
-        "show_dialog=true"
-    }
-}
-
 //MARK: - Issuer
 
 extension Issuer {
     public static let spotify = Self(rawValue: "spotify")
 }
-
-//MARK: - Enable related OAuth tasks
-
-extension SpotifyOAuthProvider: ExplicitFlowAuthorizable { }
-extension SpotifyOAuthProvider: ImplicitFlowAuthorizable { }
-extension SpotifyOAuthProvider: ClientFlowAuthorizable { }
-extension SpotifyOAuthProvider: OAuthTokenRefreshable { }

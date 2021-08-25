@@ -1,33 +1,61 @@
 
-/// Twitch model capable of performing OAuth-2 tasks.
+/// Twitch protocol capable of performing OAuth-2 tasks.
 ///
 /// See ``OAuthable``'s explanations for info about the declarations.
-public struct TwitchOAuthProvider<Token, CallbackUrls>: OAuthable, OAuthTokenConvertible
-where Token: Model & Content & OAuthTokenRepresentative,
-CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
+public protocol TwitchOAuthProvider:
+    OAuthTokenConvertible,
+    ExplicitFlowAuthorizable,
+    ImplicitFlowAuthorizable,
+    ClientFlowAuthorizable,
+    OAuthTokenRefreshable,
+    OAuthTokenRevocable
+where Scopes == TwitchOAuthScopes {
     
-    public init(
-        clientId: String,
-        clientSecret: String,
-        tokenType: Token.Type,
-        callbackUrlsType: CallbackUrls.Type
-    ) {
-        self.clientId = clientId
-        self.clientSecret = clientSecret
-    }
+    var clientId: String { get }
+    var clientSecret: String { get }
+}
+
+//MARK: - Default values
+
+public extension TwitchOAuthProvider {
+    
+    //MARK: ``OAuthable`` conformance
     
     /*
      See ``OAuthable`` protocol's explanation for insight about below stuff.
      */
     
-    public typealias Scopes = TwitchOAuthScopes
+    var authorizationUrl: String {
+        "https://id.twitch.tv/oauth2/authorize"
+    }
+    var tokenUrl: String {
+        "https://id.twitch.tv/oauth2/token"
+    }
+    var queryParametersPolicy: Policy {
+        .useUrlEncodedForm
+    }
+    var issuer: Issuer {
+        .twitch
+    }
     
-    public let clientId: String
-    public let clientSecret: String
-    public let authorizationUrl = "https://id.twitch.tv/oauth2/authorize"
-    public let tokenUrl = "https://id.twitch.tv/oauth2/token"
-    public let queryParametersPolicy: Policy = .useUrlEncodedForm
-    public let issuer: Issuer = .twitch
+    //MARK: ``OAuthTokenRevocable`` conformance
+    
+    var revocationUrl: String {
+        "https://id.twitch.tv/oauth2/revoke"
+    }
+    
+    //MARK: extras
+    
+    /// Forces provider to show the verify page/dialog again.
+    ///
+    /// Passing this as `extraArg` in funcs like `requestAuthorization(_:state:extraArg:)`
+    /// will force the provider to show the verify page/dialog again to user.
+    /// Without this, provider sometimes shows the page/dialog and sometimes doesn't.
+    /// This is provider specific and is extracted from provider's OAuth documentations.
+    /// This is not an OAuthable requirement, rather something i added for more comfort when needed.
+    var forceVerifyExtraArg: String {
+        "force_verify=true"
+    }
 }
 
 //MARK: - Scopes
@@ -64,36 +92,8 @@ public enum TwitchOAuthScopes: String, CaseIterable {
     case whispersEdit = "whispers:edit"
 }
 
-//MARK: - Other declarations
-
-extension TwitchOAuthProvider {
-    
-    /// Forces provider to show the verify page/dialog again.
-    ///
-    /// Passing this as `extraArg` in funcs like `requestAuthorization(_:state:extraArg:)`
-    /// will force the provider to show the verify page/dialog again to user.
-    /// Without this, provider sometimes shows the page/dialog and sometimes doesn't.
-    /// This is provider specific and is extracted from provider's OAuth documentations.
-    /// This is not an OAuthable requirement, rather something i added for more comfort when needed.
-    var forceVerifyExtraArg: String {
-        "force_verify=true"
-    }
-}
-
 //MARK: - Issuer
 
 extension Issuer {
     public static let twitch = Self(rawValue: "twitch")
-}
-
-//MARK: - Enable related OAuth tasks
-
-extension TwitchOAuthProvider: ExplicitFlowAuthorizable { }
-extension TwitchOAuthProvider: ImplicitFlowAuthorizable { }
-extension TwitchOAuthProvider: ClientFlowAuthorizable { }
-extension TwitchOAuthProvider: OAuthTokenRefreshable { }
-extension TwitchOAuthProvider: OAuthTokenRevocable {
-    public var revocationUrl: String {
-        "https://id.twitch.tv/oauth2/revoke"
-    }
 }

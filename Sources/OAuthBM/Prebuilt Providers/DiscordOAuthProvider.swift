@@ -1,33 +1,61 @@
 
-/// Discord model capable of performing OAuth-2 tasks.
+/// Discord protocol capable of performing OAuth-2 tasks.
 ///
 /// See ``OAuthable``'s explanations for info about the declarations.
-public struct DiscordOAuthProvider<Token, CallbackUrls>: OAuthable, OAuthTokenConvertible
-where Token: Model & Content & OAuthTokenRepresentative,
-CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
+public protocol DiscordOAuthProvider:
+    OAuthTokenConvertible,
+    ExplicitFlowAuthorizable,
+    ImplicitFlowAuthorizable,
+    ClientFlowAuthorizable,
+    OAuthTokenRefreshable,
+    OAuthTokenRevocable
+where Scopes == DiscordOAuthScopes {
     
-    public init(
-        clientId: String,
-        clientSecret: String,
-        tokenType: Token.Type,
-        callbackUrlsType: CallbackUrls.Type
-    ) {
-        self.clientId = clientId
-        self.clientSecret = clientSecret
-    }
+    var clientId: String { get }
+    var clientSecret: String { get }
+}
+
+//MARK: - Default values
+
+public extension DiscordOAuthProvider {
+    
+    //MARK: ``OAuthable`` conformance
     
     /*
      See ``OAuthable`` protocol's explanation for insight about below stuff.
      */
     
-    public typealias Scopes = DiscordOAuthScopes
+    var authorizationUrl: String {
+        "https://discord.com/api/oauth2/authorize"
+    }
+    var tokenUrl: String {
+        "https://discord.com/api/oauth2/token"
+    }
+    var queryParametersPolicy: Policy {
+        .useUrlEncodedForm
+    }
+    var issuer: Issuer {
+        .discord
+    }
     
-    public let clientId: String
-    public let clientSecret: String
-    public let authorizationUrl = "https://discord.com/api/oauth2/authorize"
-    public let tokenUrl = "https://discord.com/api/oauth2/token"
-    public let queryParametersPolicy: Policy = .useUrlEncodedForm
-    public let issuer: Issuer = .discord
+    //MARK: ``OAuthTokenRevocable`` conformance
+    
+    var revocationUrl: String {
+        "https://discord.com/api/oauth2/token/revoke"
+    }
+    
+    //MARK: extras
+    
+    /// Forces provider to show the verify page/dialog again.
+    ///
+    /// Passing this as `extraArg` in funcs like `requestAuthorization(_:state:extraArg:)`
+    /// will force the provider to show the verify page/dialog again to user.
+    /// Without this, provider sometimes shows the page/dialog and sometimes doesn't.
+    /// This is provider specific and is extracted from provider's OAuth documentations.
+    /// This is not an OAuthable requirement, rather something i added for more comfort when needed.
+    var forceVerifyExtraArg: String {
+        "prompt=consent"
+    }
 }
 
 //MARK: - Scopes
@@ -60,7 +88,7 @@ public enum DiscordOAuthScopes: String, CaseIterable {
     case rpcVoiceWrite = "rpc.voice.write"
     case webhookIncoming = "webhook.incoming"
     
-    /// All cases which will work for any authorization request.
+    /// All cases that will work for any authorization request.
     public static let allCases: [Self] = [
         /* .activitiesRead, Requires Discord approval */
         /* .activitiesWrite, Requires Discord approval */
@@ -88,36 +116,8 @@ public enum DiscordOAuthScopes: String, CaseIterable {
     ]
 }
 
-//MARK: - Other declarations
-
-extension DiscordOAuthProvider {
-    
-    /// Forces provider to show the verify page/dialog again.
-    ///
-    /// Passing this as `extraArg` in funcs like `requestAuthorization(_:state:extraArg:)`
-    /// will force the provider to show the verify page/dialog again to user.
-    /// Without this, provider sometimes shows the page/dialog and sometimes doesn't.
-    /// This is provider specific and is extracted from provider's OAuth documentations.
-    /// This is not an OAuthable requirement, rather something i added for more comfort when needed.
-    var forceVerifyExtraArg: String {
-        "prompt=consent"
-    }
-}
-
 //MARK: - Issuer
 
 extension Issuer {
     public static let discord = Self(rawValue: "discord")
-}
-
-//MARK: - Enable related OAuth tasks
-
-extension DiscordOAuthProvider: ExplicitFlowAuthorizable { }
-extension DiscordOAuthProvider: ImplicitFlowAuthorizable { }
-extension DiscordOAuthProvider: ClientFlowAuthorizable { }
-extension DiscordOAuthProvider: OAuthTokenRefreshable { }
-extension DiscordOAuthProvider: OAuthTokenRevocable {
-    public var revocationUrl: String {
-        "https://discord.com/api/oauth2/token/revoke"
-    }
 }

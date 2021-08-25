@@ -1,33 +1,54 @@
 
-/// Github model capable of performing OAuth-2 tasks.
+/// Github protocol capable of performing OAuth-2 tasks.
 ///
 /// See ``OAuthable``'s explanations for info about the declarations.
-public struct GithubOAuthProvider<Token, CallbackUrls>: OAuthable, OAuthTokenConvertible
-where Token: Model & Content & OAuthTokenRepresentative,
-CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
+public protocol GithubOAuthProvider:
+    OAuthTokenConvertible,
+    WebAppFlowAuthorizable,
+    OAuthTokenRefreshable
+where Scopes == GithubOAuthScopes {
     
-    public init(
-        clientId: String,
-        clientSecret: String,
-        tokenType: Token.Type,
-        callbackUrlsType: CallbackUrls.Type
-    ) {
-        self.clientId = clientId
-        self.clientSecret = clientSecret
-    }
+    var clientId: String { get }
+    var clientSecret: String { get }
+}
+
+//MARK: - Default values
+
+public extension GithubOAuthProvider {
+    
+    //MARK: ``OAuthable`` conformance
     
     /*
      See ``OAuthable`` protocol's explanation for insight about below stuff.
      */
     
-    public typealias Scopes = GithubOAuthScopes
+    var authorizationUrl: String {
+        "https://github.com/login/oauth/authorize"
+    }
+    var tokenUrl: String {
+        "https://github.com/login/oauth/access_token"
+    }
+    var queryParametersPolicy: Policy {
+        .useUrlEncodedForm
+    }
+    var issuer: Issuer {
+        .github
+    }
     
-    public let clientId: String
-    public let clientSecret: String
-    public let authorizationUrl = "https://github.com/login/oauth/authorize"
-    public let tokenUrl = "https://github.com/login/oauth/access_token"
-    public let queryParametersPolicy: Policy = .useUrlEncodedForm
-    public let issuer: Issuer = .github
+    //MARK: extras
+    
+    /// Forces Github to _not_ allow unauthenticated users to signup.
+    ///
+    /// Github Explanation @ [Github Website](https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps):
+    /// "Whether or not unauthenticated users will be offered an option to sign up for GitHub during the OAuth flow. The default is true. Use false when a policy prohibits signups."
+    ///
+    /// Passing this as `extraArg` in funcs like `requestAuthorization(_:state:extraArg:)`
+    /// will enable its functionality.
+    /// This is provider specific and is extracted from provider's OAuth documentations.
+    /// This is not an OAuthable requirement, rather something i added for more comfort when needed.
+    var allowSignupExtraArg: String {
+        "allow_signup=false"
+    }
 }
 
 //MARK: - Scopes
@@ -70,31 +91,8 @@ public enum GithubOAuthScopes: String, CaseIterable {
     case workflow = "workflow"
 }
 
-//MARK: - Other declarations
-
-extension GithubOAuthProvider {
-    
-    /// Forces Github to _not_ allow unauthenticated users to signup.
-    ///
-    /// Github Explanation @ [Github Website](https://docs.github.com/en/developers/apps/building-oauth-apps/authorizing-oauth-apps):
-    /// "Whether or not unauthenticated users will be offered an option to sign up for GitHub during the OAuth flow. The default is true. Use false when a policy prohibits signups."
-    ///
-    /// Passing this as `extraArg` in funcs like `requestAuthorization(_:state:extraArg:)`
-    /// will enable its functionality.
-    /// This is provider specific and is extracted from provider's OAuth documentations.
-    /// This is not an OAuthable requirement, rather something i added for more comfort when needed.
-    var allowSignupExtraArg: String {
-        "allow_signup=false"
-    }
-}
-
 //MARK: - Issuer
 
 extension Issuer {
     public static let github = Self(rawValue: "github")
 }
-
-//MARK: - Enable related OAuth tasks
-
-extension GithubOAuthProvider: WebAppFlowAuthorizable { }
-extension GithubOAuthProvider: OAuthTokenRefreshable { }
