@@ -1,7 +1,5 @@
 
 /// Discord protocol capable of performing OAuth-2 tasks.
-///
-/// See ``OAuthable``'s explanations for info about the declarations.
 public protocol DiscordOAuthProvider:
     OAuthTokenConvertible,
     ExplicitFlowAuthorizable,
@@ -19,11 +17,11 @@ where Scopes == DiscordOAuthScopes {
 
 public extension DiscordOAuthProvider {
     
-    //MARK: ``OAuthable`` conformance
-    
     /*
-     See ``OAuthable`` protocol's explanation for insight about below stuff.
+     See corresponding protocol's explanation for insight about below stuff.
      */
+    
+    //MARK: ``OAuthable`` conformance
     
     var authorizationUrl: String {
         "https://discord.com/api/oauth2/authorize"

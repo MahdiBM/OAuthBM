@@ -1,7 +1,5 @@
 
 /// Twitch protocol capable of performing OAuth-2 tasks.
-///
-/// See ``OAuthable``'s explanations for info about the declarations.
 public protocol TwitchOAuthProvider:
     OAuthTokenConvertible,
     ExplicitFlowAuthorizable,
@@ -19,11 +17,11 @@ where Scopes == TwitchOAuthScopes {
 
 public extension TwitchOAuthProvider {
     
-    //MARK: ``OAuthable`` conformance
-    
     /*
-     See ``OAuthable`` protocol's explanation for insight about below stuff.
+     See corresponding protocol's explanation for insight about below stuff.
      */
+    
+    //MARK: ``OAuthable`` conformance
     
     var authorizationUrl: String {
         "https://id.twitch.tv/oauth2/authorize"

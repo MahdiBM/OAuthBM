@@ -80,7 +80,7 @@ internal struct QueryParameters {
         append(self.code, key: .code)
         append(self.token, key: .token)
         
-        return allValues.compactMap { $0 }
+        return allValues.compactMap({ $0 })
     }
     
     /// The string to be passed at the end of a url.

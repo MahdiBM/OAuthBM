@@ -14,7 +14,7 @@
         
         @Steps {
             @Step {
-                First of all, make sure you are using one of the prebuilt provider's types, or you've built your own. I've gone through building a new supporting-type for your provider in the following tutorial: [](doc:SupportingNewProviders).
+                First of all, make sure you are using one of the prebuilt providers' protocols, or you've built your own. I've gone through building a new supporting-type for your provider in the following tutorial: [](doc:SupportingNewProviders).
                 
                 As you can see, i've got my `TwitchOAuthProvider` ready to use, and i will be using it as a showcase.
                 
@@ -98,7 +98,7 @@
         @Steps {
             @Step {
                 Based on how OAuth-2 works, you need an endpoint that redirects 
-                anyone who triggers it, to you provider, where they are asked to give your app permissions.
+                anyone who triggers it, to your provider, where they are asked to give your app permissions.
                 
                 I'll put my logic in a function. Remember you need to call the function once before booting so it enables the routes.
                 
@@ -121,7 +121,7 @@
                 You need to register a route for the callback endpoint.
                 ``OAuthBM`` takes care of the authorization process, gives you some context about it, and lets you finish it.
                 
-                I'll call the authorization-callback function related to `OAuth authorization code flow`. Don;t forget other flows have different authorization-callback functions.
+                I'll call the authorization-callback function related to `OAuth authorization code flow`. Don't forget other flows have different authorization-callback functions.
                 
                 @Code(name: "Routes.swift", file: UsingOAuthBM-03-03.swift)
             }

@@ -1,7 +1,5 @@
 
 /// Reddit protocol capable of performing OAuth-2 tasks.
-///
-/// See ``OAuthable``'s explanations for info about the declarations.
 public protocol RedditOAuthProvider:
     OAuthTokenConvertible,
     ExplicitFlowAuthorizable,
@@ -18,11 +16,11 @@ where Scopes == RedditOAuthScopes {
 
 public extension RedditOAuthProvider {
     
-    //MARK: ``OAuthable`` conformance
-    
     /*
-     See ``OAuthable`` protocol's explanation for insight about below stuff.
+     See corresponding protocol's explanation for insight about below stuff.
      */
+    
+    //MARK: ``OAuthable`` conformance
     
     var authorizationUrl: String {
         "https://www.reddit.com/api/v1/authorize"

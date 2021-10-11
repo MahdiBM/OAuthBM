@@ -1,7 +1,5 @@
 
 /// Github protocol capable of performing OAuth-2 tasks.
-///
-/// See ``OAuthable``'s explanations for info about the declarations.
 public protocol GithubOAuthProvider:
     OAuthTokenConvertible,
     WebAppFlowAuthorizable,
@@ -16,11 +14,11 @@ where Scopes == GithubOAuthScopes {
 
 public extension GithubOAuthProvider {
     
-    //MARK: ``OAuthable`` conformance
-    
     /*
-     See ``OAuthable`` protocol's explanation for insight about below stuff.
+     See corresponding protocol's explanation for insight about below stuff.
      */
+    
+    //MARK: ``OAuthable`` conformance
     
     var authorizationUrl: String {
         "https://github.com/login/oauth/authorize"

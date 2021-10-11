@@ -25,7 +25,7 @@ For tutorials, refer to the [Tutorials](https://oauthbm.mahdibm.com/tutorials/oa
 - ``OAuthTokenRefreshable``
 - ``OAuthTokenRevocable``
 
-### Prebuilt Supporting-Types
+### Prebuilt Supporting-Protocols
 
 - ``DiscordOAuthProvider``
 - ``GithubOAuthProvider``
