@@ -80,6 +80,10 @@ extension ExplicitFlowAuthorizable {
             code: code
         )
         let clientResponse = try await req.client.send(clientRequest).get()
+        guard clientResponse.status.is200Series else {
+            let error = decodeError(req: req, res: clientResponse)
+            throw error
+        }
         let accessTokenContent = try decode(req: req, res: clientResponse, as: DecodedToken.self)
         let retrievedToken = accessTokenContent.convertToRetrievedToken(
             issuer: self.issuer,

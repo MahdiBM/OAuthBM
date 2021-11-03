@@ -48,6 +48,10 @@ extension ClientFlowAuthorizable {
     ) async throws -> RetrievedToken {
         let clientRequest = try self.appAccessTokenRequest(scopes: scopes)
         let clientResponse = try await req.client.send(clientRequest).get()
+        guard clientResponse.status.is200Series else {
+            let error = decodeError(req: req, res: clientResponse)
+            throw error
+        }
         let tokenContent = try decode(req: req, res: clientResponse, as: DecodedToken.self)
         let retrievedToken = tokenContent.convertToRetrievedToken(
             issuer: self.issuer,
