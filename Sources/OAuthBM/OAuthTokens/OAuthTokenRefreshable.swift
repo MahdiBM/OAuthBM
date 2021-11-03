@@ -41,24 +41,28 @@ extension OAuthTokenRefreshable {
     public func refreshToken(
         _ req: Request,
         refreshToken: String
-    ) -> EventLoopFuture<RetrievedToken> {
+    ) async throws -> RetrievedToken {
         req.logger.trace("Will try to refresh token.", metadata: [
             "type": .string("\(Self.self)"),
             "refreshToken": .string(refreshToken),
         ])
         
-        let clientRequest = req.eventLoop.tryFuture {
-            try self.refreshTokenRequest(refreshToken: refreshToken)
+        let clientRequest = try self.refreshTokenRequest(refreshToken: refreshToken)
+        let clientResponse = try await req.client.send(clientRequest).get()
+        guard clientResponse.status.is200Series else {
+            let error = decodeError(req: req, res: clientResponse)
+            throw error
         }
-        let clientResponse = clientRequest.flatMap {
-            req.client.send($0)
-        }
-        let refreshTokenContent = clientResponse.flatMap { res in
-            decode(req: req, res: res, as: DecodedToken.self)
-        }
-        let retrievedToken = refreshTokenContent.map {
-            $0.convertToRetrievedToken(issuer: self.issuer, flow: .authorizationCodeFlow)
-        }
+        
+        let refreshTokenContent = try decode(
+            req: req,
+            res: clientResponse,
+            as: DecodedToken.self
+        )
+        let retrievedToken = refreshTokenContent.convertToRetrievedToken(
+            issuer: self.issuer,
+            flow: .authorizationCodeFlow
+        )
         return retrievedToken
     }
 }

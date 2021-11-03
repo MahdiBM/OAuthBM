@@ -11,13 +11,9 @@ public extension OAuthTokenRevocable where Self: OAuthTokenConvertible {
     func revokeToken(
         _ req: Request,
         token: Token
-    ) -> EventLoopFuture<Void> {
-        let revocation = self.revokeToken(req, accessToken: token.accessToken)
-        let deletion = revocation.flatMap {
-            token.delete(on: req.db)
-        }
-        
-        return deletion
+    ) async throws {
+        try await self.revokeToken(req, accessToken: token.accessToken)
+        try await token.delete(on: req.db)
     }
 }
 
@@ -33,18 +29,12 @@ public extension OAuthTokenRefreshable where Self: OAuthTokenConvertible {
     func refreshToken(
         _ req: Request,
         token: Token
-    ) -> EventLoopFuture<Token> {
-        var refreshTokenContent: EventLoopFuture<RetrievedToken> {
-            self.refreshToken(req, refreshToken: token.refreshToken)
-        }
-        let newToken = refreshTokenContent.flatMap { refreshToken in
-            refreshToken.saveToDb(req: req, oldToken: token)
-        }
-        let deleteOldToken = newToken.flatMap { newToken in
-            token.delete(on: req.db).map { _ in newToken }
-        }
+    ) async throws -> Token {
+        let refreshToken = try await refreshToken(req, refreshToken: token.refreshToken)
+        let newToken = try await refreshToken.saveToDb(req: req, oldToken: token)
+        try await token.delete(on: req.db)
         
-        return deleteOldToken.map { $0 }
+        return newToken
     }
     
     /// Refreshes the token if needed.
@@ -55,19 +45,19 @@ public extension OAuthTokenRefreshable where Self: OAuthTokenConvertible {
     func refreshTokenIfExpired(
         _ req: Request,
         token: Token
-    ) -> EventLoopFuture<Token> {
+    ) async throws -> Token {
         if token.tokenHasExpired && token.isRefreshableToken {
             req.logger.trace("Token has expired. Will try to acquire new one.", metadata: [
                 "type": .string("\(Self.self)"),
                 "token": .stringConvertible(token),
             ])
-            return refreshToken(req, token: token)
+            return try await refreshToken(req, token: token)
         } else {
             req.logger.trace("Token has not expired. Will return the current token.", metadata: [
                 "type": .string("\(Self.self)"),
                 "token": .stringConvertible(token),
             ])
-            return req.eventLoop.future(token)
+            return token
         }
     }
 }

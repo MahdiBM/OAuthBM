@@ -45,19 +45,14 @@ extension ClientFlowAuthorizable {
     public func getAppAccessToken(
         _ req: Request,
         scopes: [Scopes] = []
-    ) -> EventLoopFuture<RetrievedToken> {
-        let clientRequest = req.eventLoop.tryFuture {
-            try self.appAccessTokenRequest(scopes: scopes)
-        }
-        let clientResponse = clientRequest.flatMap {
-            req.client.send($0)
-        }
-        let tokenContent = clientResponse.flatMap { res in
-            decode(req: req, res: res, as: DecodedToken.self)
-        }
-        let retrievedToken = tokenContent.map {
-            $0.convertToRetrievedToken(issuer: self.issuer, flow: .clientCredentialsFlow)
-        }
+    ) async throws -> RetrievedToken {
+        let clientRequest = try self.appAccessTokenRequest(scopes: scopes)
+        let clientResponse = try await req.client.send(clientRequest).get()
+        let tokenContent = try decode(req: req, res: clientResponse, as: DecodedToken.self)
+        let retrievedToken = tokenContent.convertToRetrievedToken(
+            issuer: self.issuer,
+            flow: .clientCredentialsFlow
+        )
         
         return retrievedToken
     }

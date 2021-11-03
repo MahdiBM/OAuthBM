@@ -36,7 +36,7 @@ final class OAuthToken: Content, Model, OAuthTokenRepresentative {
         request: Request,
         token: RetrievedToken,
         oldToken: OAuthToken?
-    ) throws -> EventLoopFuture<OAuthToken> {
+    ) async throws -> OAuthToken {
         
     }
     

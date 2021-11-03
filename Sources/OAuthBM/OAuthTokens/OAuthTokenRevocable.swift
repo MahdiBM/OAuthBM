@@ -44,28 +44,12 @@ extension OAuthTokenRevocable {
     public func revokeToken(
         _ req: Request,
         accessToken: String
-    ) -> EventLoopFuture<Void> {
-        let clientRequest = req.eventLoop.tryFuture {
-            try self.revokeTokenRequest(accessToken: accessToken)
+    ) async throws {
+        let clientRequest = try self.revokeTokenRequest(accessToken: accessToken)
+        let clientResponse = try await req.client.send(clientRequest).get()
+        guard clientResponse.status.is200Series else {
+            let error = decodeError(req: req, res: clientResponse)
+            throw error
         }
-        let clientResponse = clientRequest.flatMap {
-            req.client.send($0)
-        }
-        let errorsHandled = clientResponse.flatMapAlways {
-            result -> EventLoopFuture<Void> in
-            switch result {
-            case let .success(response):
-                switch response.status {
-                case .ok: return req.eventLoop.future()
-                default:
-                    let error = decodeError(req: req, res: response)
-                    return req.eventLoop.future(error: error)
-                }
-            case let .failure(error):
-                return req.eventLoop.future(error: error)
-            }
-        }
-        
-        return errorsHandled
     }
 }

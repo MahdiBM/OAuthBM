@@ -58,37 +58,27 @@ extension WebAppFlowAuthorizable {
     /// - Returns: The ``OAuthable/State`` of the request.
     public func webAppAuthorizationCallback(
         _ req: Request
-    ) -> EventLoopFuture<(state: State, token: RetrievedToken)> {
+    ) async throws -> (state: State, token: RetrievedToken) {
         req.logger.trace("OAuth2 web app authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
         
-        let state: State
-        do {
-            state = try extractAndValidateState(req: req)
-        } catch {
-            return req.eventLoop.future(error: error)
-        }
+        let state = try extractAndValidateState(req: req)
         
         guard let code = req.query[String.self, at: "code"] else {
-            return req.eventLoop.future(error: decodeError(req: req, res: nil))
+            let error = decodeError(req: req, res: nil)
+            throw error
         }
         
-        let clientRequest = req.eventLoop.future().flatMapThrowing {
-            try self.webAppAccessTokenRequest(state: state, code: code)
-        }
-        let clientResponse = clientRequest.flatMap { req.client.send($0) }
-        let accessTokenContent = clientResponse.flatMap { res in
-            decode(req: req, res: res, as: DecodedToken.self)
-        }
-        let retrievedToken = accessTokenContent.map {
-            $0.convertToRetrievedToken(issuer: self.issuer, flow: .webAppFlow)
-        }
-        let stateAndToken = retrievedToken.map {
-            (state: state, token: $0)
-        }
+        let clientRequest = try webAppAccessTokenRequest(state: state, code: code)
+        let clientResponse = try await req.client.send(clientRequest).get()
+        let accessTokenContent = try decode(req: req, res: clientResponse, as: DecodedToken.self)
+        let retrievedToken = accessTokenContent.convertToRetrievedToken(
+            issuer: self.issuer,
+            flow: .webAppFlow
+        )
         
-        return stateAndToken
+        return (state: state, token: retrievedToken)
     }
     
     //MARK: - Code to Token Request

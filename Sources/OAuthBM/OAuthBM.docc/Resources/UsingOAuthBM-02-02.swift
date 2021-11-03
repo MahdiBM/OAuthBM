@@ -11,7 +11,7 @@ final class OAuthToken: Content, Model, OAuthTokenRepresentative {
         request: Request,
         token: RetrievedToken,
         oldToken: OAuthToken?
-    ) throws -> EventLoopFuture<OAuthToken> {
+    ) async throws -> OAuthToken {
         let token = OAuthToken.init(
             accessToken: token.accessToken,
             refreshToken: token.refreshToken,
@@ -21,9 +21,9 @@ final class OAuthToken: Content, Model, OAuthTokenRepresentative {
             tokenType: token.tokenType,
             issuer: token.issuer
         )
+        try await token.save(on: request.db)
+        
         return token
-            .save(on: request.db)
-            .transform(to: token)
     }
     
         .
