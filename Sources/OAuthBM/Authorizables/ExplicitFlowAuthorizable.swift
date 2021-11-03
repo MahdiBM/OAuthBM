@@ -79,7 +79,7 @@ extension ExplicitFlowAuthorizable {
             callbackUrl: state.callbackUrl,
             code: code
         )
-        let clientResponse = try await req.client.send(clientRequest).get()
+        let clientResponse = try await req.client.send(clientRequest)
         guard clientResponse.status.is200Series else {
             let error = decodeError(req: req, res: clientResponse)
             throw error

@@ -46,7 +46,7 @@ extension OAuthTokenRevocable {
         accessToken: String
     ) async throws {
         let clientRequest = try self.revokeTokenRequest(accessToken: accessToken)
-        let clientResponse = try await req.client.send(clientRequest).get()
+        let clientResponse = try await req.client.send(clientRequest)
         guard clientResponse.status.is200Series else {
             let error = decodeError(req: req, res: clientResponse)
             throw error
