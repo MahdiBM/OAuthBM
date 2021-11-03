@@ -28,7 +28,7 @@ public protocol OAuthTokenRepresentative {
         request: Request,
         token: RetrievedToken,
         oldToken: Self?
-    ) throws -> EventLoopFuture<Self>
+    ) async throws -> Self
 }
 
 extension OAuthTokenRepresentative {

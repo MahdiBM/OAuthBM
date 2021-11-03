@@ -63,21 +63,16 @@ extension ImplicitFlowAuthorizable {
     /// - Returns: The ``OAuthable/State`` of the request.
     public func implicitAuthorizationCallback(
         _ req: Request
-    ) -> EventLoopFuture<State> {
+    ) async throws -> State {
         req.logger.trace("OAuth2 implicit authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
         
         if let error = decodeErrorIfAvailable(req: req, res: nil) {
-            return req.eventLoop.future(error: error)
+            throw error
         }
-        
-        let state = req.eventLoop.tryFuture { () -> State in
-            let state = try State.extract(from: req.session)
-            req.session.destroy()
-            return state
-        }
-        
+        let state = try State.extract(from: req.session)
+
         return state
     }
 }

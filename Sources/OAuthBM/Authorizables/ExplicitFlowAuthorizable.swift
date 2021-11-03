@@ -63,37 +63,34 @@ extension ExplicitFlowAuthorizable {
     /// - Returns: The ``OAuthable/State`` of the request and the acquired ``RetrievedToken``.
     public func authorizationCallback(
         _ req: Request
-    ) -> EventLoopFuture<(state: State, token: RetrievedToken)> {
+    ) async throws -> (state: State, token: RetrievedToken) {
         req.logger.trace("OAuth2 authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
         
-        let state: State
-        do {
-            state = try extractAndValidateState(req: req)
-        } catch {
-            return req.eventLoop.future(error: error)
-        }
+        let state = try extractAndValidateState(req: req)
         
         guard let code = req.query[String.self, at: "code"] else {
-            return req.eventLoop.future(error: decodeError(req: req, res: nil))
+            let error = decodeError(req: req, res: nil)
+            throw error
         }
         
-        let clientRequest = req.eventLoop.future().flatMapThrowing {
-            try self.userAccessTokenRequest(callbackUrl: state.callbackUrl, code: code)
+        let clientRequest = try self.userAccessTokenRequest(
+            callbackUrl: state.callbackUrl,
+            code: code
+        )
+        let clientResponse = try await req.client.send(clientRequest)
+        guard clientResponse.status.is200Series else {
+            let error = decodeError(req: req, res: clientResponse)
+            throw error
         }
-        let clientResponse = clientRequest.flatMap { req.client.send($0) }
-        let accessTokenContent = clientResponse.flatMap { res in
-            decode(req: req, res: res, as: DecodedToken.self)
-        }
-        let retrievedToken = accessTokenContent.map {
-            $0.convertToRetrievedToken(issuer: self.issuer, flow: .authorizationCodeFlow)
-        }
-        let stateAndToken = retrievedToken.map {
-            (state: state, token: $0)
-        }
+        let accessTokenContent = try decode(req: req, res: clientResponse, as: DecodedToken.self)
+        let retrievedToken = accessTokenContent.convertToRetrievedToken(
+            issuer: self.issuer,
+            flow: .authorizationCodeFlow
+        )
         
-        return stateAndToken
+        return (state: state, token: retrievedToken)
     }
     
     //MARK: - Code to Token Request

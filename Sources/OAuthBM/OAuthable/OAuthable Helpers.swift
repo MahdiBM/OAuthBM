@@ -59,23 +59,23 @@ extension OAuthable {
     ///   - req: The `Request`.
     ///   - res: The `ClientResponse`.
     ///   - type: The type to decode to.
-    /// - Returns: An `EventLoopFuture` containing a value of the entered type.
+    /// - Returns: The decoded value.
     internal func decode<T>(
         req: Request,
         res: ClientResponse,
         as type: T.Type
-    ) -> EventLoopFuture<T> where T: Content {
-        req.eventLoop.tryFuture {
-            if res.status.code < 300, res.status.code >= 200 {
-                do {
-                    return try res.content.decode(T.self)
-                } catch {
-                    throw OAuthableError.serverError(
-                        status: .badRequest, error: .unknown(error: "\(error)"))
-                }
-            } else {
-                throw decodeError(req: req, res: res)
+    ) throws -> T where T: Content {
+        if res.status.code < 300, res.status.code >= 200 {
+            do {
+                return try res.content.decode(T.self)
+            } catch {
+                throw OAuthableError.serverError(
+                    status: .badRequest,
+                    error: .unknown(error: "\(error)")
+                )
             }
+        } else {
+            throw decodeError(req: req, res: res)
         }
     }
     

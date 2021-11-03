@@ -30,11 +30,9 @@ extension RetrievedToken {
     internal func saveToDb<Token>(
         req: Request,
         oldToken: Token?
-    ) -> EventLoopFuture<Token>
+    ) async throws -> Token
     where Token: OAuthTokenRepresentative {
-        req.eventLoop.future().tryFlatMap {
-            try Token.initializeAndSave(request: req, token: self, oldToken: oldToken)
-        }
+        try await Token.initializeAndSave(request: req, token: self, oldToken: oldToken)
     }
 }
 

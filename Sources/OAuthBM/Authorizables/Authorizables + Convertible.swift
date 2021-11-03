@@ -10,19 +10,19 @@ public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
     /// and gets redirected back to this app by the provider.
     /// - Parameter req: The `Request`.
     /// - Returns: The ``OAuthable/State`` of the request and the acquired ``OAuthTokenConvertible/Token``.
-    func authorizationCallback(
+    func authorizationCallbackWithOAuthToken(
         _ req: Request
-    ) -> EventLoopFuture<(state: State, token: Token)> {
+    ) async throws -> (state: State, token: Token) {
         req.logger.trace("OAuth2 authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
-        var authorizationCallback: EventLoopFuture<(state: State, token: RetrievedToken)>  {
-            self.authorizationCallback(req)
-        }
-        return authorizationCallback.flatMap { state, accessToken in
-            accessToken.saveToDb(req: req, oldToken: nil)
-                .map({ (state: state, token: $0) })
-        }
+        let authorizationCallback = try await self.authorizationCallback(req)
+        let oauthToken = try await authorizationCallback.token.saveToDb(
+            req: req,
+            oldToken: Optional<Token>.none
+        )
+        
+        return (state: authorizationCallback.state, token: oauthToken)
     }
 }
 
@@ -39,17 +39,16 @@ public extension ClientFlowAuthorizable where Self: OAuthTokenConvertible {
     ///   - req: The `Request`.
     ///   - scopes: The ``OAuthable/Scopes`` to get access token for.
     /// - Returns: The acquired ``OAuthTokenConvertible/Token``.
-    func getAppAccessToken(
+    func getAppAccessOAuthToken(
         _ req: Request,
         scopes: [Scopes] = []
-    ) -> EventLoopFuture<Token> {
-        var appAccessToken: EventLoopFuture<RetrievedToken> {
-            self.getAppAccessToken(req, scopes: scopes)
-        }
-        let oauthToken = appAccessToken.flatMap {
-            token -> EventLoopFuture<Token> in
-            token.saveToDb(req: req, oldToken: nil)
-        }
+    ) async throws -> Token {
+        let appAccessToken = try await self.getAppAccessToken(req, scopes: scopes)
+        let oauthToken = try await appAccessToken.saveToDb(
+            req: req,
+            oldToken: Optional<Token>.none
+        )
+        
         return oauthToken
     }
 }
@@ -63,18 +62,18 @@ public extension WebAppFlowAuthorizable where Self: OAuthTokenConvertible {
     /// and gets redirected back to this app by the provider.
     /// - Parameter req: The `Request`.
     /// - Returns: The ``OAuthable/State`` of the request and the acquired ``OAuthTokenConvertible/Token``.
-    func webAppAuthorizationCallback(
+    func webAppAuthorizationCallbackWithOAuthToken(
         _ req: Request
-    ) -> EventLoopFuture<(state: State, token: Token)> {
+    ) async throws -> (state: State, token: Token) {
         req.logger.trace("OAuth2 web app authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
-        var authorizationCallback: EventLoopFuture<(state: State, token: RetrievedToken)> {
-            self.webAppAuthorizationCallback(req)
-        }
-        return authorizationCallback.flatMap { state, accessToken in
-            accessToken.saveToDb(req: req, oldToken: nil)
-                .map({ (state: state, token: $0) })
-        }
+        let authorizationCallback = try await self.webAppAuthorizationCallback(req)
+        let oauthToken = try await authorizationCallback.token.saveToDb(
+            req: req,
+            oldToken: Optional<Token>.none
+        )
+        
+        return (state: authorizationCallback.state, token: oauthToken)
     }
 }

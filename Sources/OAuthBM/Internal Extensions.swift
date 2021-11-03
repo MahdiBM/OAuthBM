@@ -27,3 +27,12 @@ extension String {
         return randomStrings.joined()
     }
 }
+
+extension HTTPStatus {
+    
+    /// Whether or not the returned status code is `2xx`.
+    var is200Series: Bool {
+        let code = self.code
+        return code > 199 && code < 300
+    }
+}

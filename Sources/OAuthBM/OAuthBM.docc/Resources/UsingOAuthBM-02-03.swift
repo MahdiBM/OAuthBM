@@ -1,9 +1,10 @@
 import Fluent
 
 extension OAuthToken {
-    struct Create: Fluent.Migration {
-        func prepare(on database: Database) -> ELF<Void> {
-            database.schema(OAuthToken.schema)
+    struct Create: AsyncMigration {
+        func prepare(on database: Database) async throws {
+            try await database
+                .schema(OAuthToken.schema)
                 .id()
                 .field("accessToken", .string)
                 .field("refreshToken", .string)
@@ -16,8 +17,9 @@ extension OAuthToken {
                 .create()
         }
         
-        func revert(on database: Database) -> ELF<Void> {
-            database.schema(OAuthToken.schema)
+        func revert(on database: Database) async throws {
+            try await database
+                .schema(OAuthToken.schema)
                 .delete()
         }
     }
