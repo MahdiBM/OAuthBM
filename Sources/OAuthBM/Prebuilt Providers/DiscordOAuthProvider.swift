@@ -68,6 +68,7 @@ public enum DiscordOAuthScopes: String, CaseIterable {
     case applicationsBuildsUpload = "applications.builds.upload"
     case applicationsCommands = "applications.commands"
     case applicationsCommandsUpdate = "applications.commands.update"
+    case applicationsCommandsPermissionsUpdate = "applications.commands.permissions.update"
     case applicationsEntitlements = "applications.entitlements"
     case applicationsStoreUpdate = "applications.store.update"
     case bot = "bot"
