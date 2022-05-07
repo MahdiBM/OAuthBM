@@ -77,6 +77,7 @@ public enum DiscordOAuthScopes: String, CaseIterable {
     case gdmJoin = "gdm.join"
     case guilds = "guilds"
     case guildsJoin = "guilds.join"
+    case guildsMembersRead = "guilds.members.read"
     case identify = "identify"
     case messagesRead = "messages.read"
     case relationshipsRead = "relationships.read"
