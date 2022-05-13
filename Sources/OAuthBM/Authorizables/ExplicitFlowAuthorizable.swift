@@ -44,7 +44,7 @@ extension ExplicitFlowAuthorizable {
         scopes: [Scopes] = Array(Scopes.allCases),
         extraArg arg: String? = nil
     ) -> Response {
-        req.logger.trace("OAuth2 authorization requested.", metadata: [
+        req.logger.debug("OAuth2 authorization requested.", metadata: [
             "type": .string("\(Self.self)")
         ])
         var authUrl = self.authorizationRedirectUrl(state: state, scopes: scopes)
@@ -64,7 +64,7 @@ extension ExplicitFlowAuthorizable {
     public func authorizationCallback(
         _ req: Request
     ) async throws -> (state: State, token: RetrievedToken) {
-        req.logger.trace("OAuth2 authorization callback called.", metadata: [
+        req.logger.debug("OAuth2 authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
         

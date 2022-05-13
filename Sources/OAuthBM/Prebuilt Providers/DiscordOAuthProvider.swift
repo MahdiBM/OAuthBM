@@ -96,6 +96,7 @@ public enum DiscordOAuthScopes: String, CaseIterable {
         /* .applicationsBuildsUpload, Requires Discord approval */
         .applicationsCommands,
         /* .applicationsCommandsUpdate, Client-credentials-flow only */
+        /* .applicationsCommandsPermissionsUpdate */
         .applicationsEntitlements,
         .applicationsStoreUpdate,
         /* .bot, Requires a Bot account connected to your application */
@@ -104,6 +105,7 @@ public enum DiscordOAuthScopes: String, CaseIterable {
         .gdmJoin,
         .guilds,
         /* .guildsJoin, Requires a Bot account connected to your application */
+        /* .messagesRead, Will need bot verification */
         .identify,
         .messagesRead,
         /* .relationshipsRead, Requires Discord approval */

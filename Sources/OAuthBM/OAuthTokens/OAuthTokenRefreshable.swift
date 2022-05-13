@@ -42,7 +42,7 @@ extension OAuthTokenRefreshable {
         _ req: Request,
         refreshToken: String
     ) async throws -> RetrievedToken {
-        req.logger.trace("Will try to refresh token.", metadata: [
+        req.logger.debug("Will try to refresh token.", metadata: [
             "type": .string("\(Self.self)"),
             "refreshToken": .string(refreshToken),
         ])

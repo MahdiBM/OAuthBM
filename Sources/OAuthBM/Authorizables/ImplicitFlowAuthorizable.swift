@@ -44,7 +44,7 @@ extension ImplicitFlowAuthorizable {
         scopes: [Scopes] = Array(Scopes.allCases),
         extraArg arg: String? = nil
     ) -> Response {
-        req.logger.trace("OAuth2 implicit authorization requested.", metadata: [
+        req.logger.debug("OAuth2 implicit authorization requested.", metadata: [
             "type": .string("\(Self.self)")
         ])
         var authUrl = self.implicitAuthorizationRedirectUrl(state: state, scopes: scopes)
@@ -64,7 +64,7 @@ extension ImplicitFlowAuthorizable {
     public func implicitAuthorizationCallback(
         _ req: Request
     ) async throws -> State {
-        req.logger.trace("OAuth2 implicit authorization callback called.", metadata: [
+        req.logger.debug("OAuth2 implicit authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
         

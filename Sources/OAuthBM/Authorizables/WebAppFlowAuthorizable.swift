@@ -39,7 +39,7 @@ extension WebAppFlowAuthorizable {
         state: State,
         extraArg arg: String? = nil
     ) -> Response {
-        req.logger.trace("OAuth2 web app authorization requested.", metadata: [
+        req.logger.debug("OAuth2 web app authorization requested.", metadata: [
             "type": .string("\(Self.self)")
         ])
         var authUrl = self.webAppAuthorizationRedirectUrl(state: state)
@@ -59,7 +59,7 @@ extension WebAppFlowAuthorizable {
     public func webAppAuthorizationCallback(
         _ req: Request
     ) async throws -> (state: State, token: RetrievedToken) {
-        req.logger.trace("OAuth2 web app authorization callback called.", metadata: [
+        req.logger.debug("OAuth2 web app authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
         

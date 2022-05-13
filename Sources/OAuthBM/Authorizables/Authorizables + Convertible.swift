@@ -13,7 +13,7 @@ public extension ExplicitFlowAuthorizable where Self: OAuthTokenConvertible {
     func authorizationCallbackWithOAuthToken(
         _ req: Request
     ) async throws -> (state: State, token: Token) {
-        req.logger.trace("OAuth2 authorization callback called.", metadata: [
+        req.logger.debug("OAuth2 authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
         let authorizationCallback = try await self.authorizationCallback(req)
@@ -65,7 +65,7 @@ public extension WebAppFlowAuthorizable where Self: OAuthTokenConvertible {
     func webAppAuthorizationCallbackWithOAuthToken(
         _ req: Request
     ) async throws -> (state: State, token: Token) {
-        req.logger.trace("OAuth2 web app authorization callback called.", metadata: [
+        req.logger.debug("OAuth2 web app authorization callback called.", metadata: [
             "type": .string("\(Self.self)")
         ])
         let authorizationCallback = try await self.webAppAuthorizationCallback(req)
