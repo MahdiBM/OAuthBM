@@ -11,6 +11,7 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
     /// CallbackUrl that should be called after the process by the provider.
     public let callbackUrl: CallbackUrls
     /// Random value to make this state unpredictable.
+    /// Not cryptographically-random but should suffice and help not pulling a whole crypto dependancy.
     internal let randomValue: String
     
     /// The value to be used for HTTP requests.
@@ -49,12 +50,11 @@ where CallbackUrls: RawRepresentable, CallbackUrls.RawValue == String {
     /// Injects the current values of this instance to the session.
     /// - Parameter session: The ``Session``.
     internal func injectTo(session: Session) {
-        OAuthBMSessionData.set(
-            session: session,
+        OAuthBMSessionData.init(
             customValue: customValue,
             callbackUrl: callbackUrl.rawValue,
             randomValue: randomValue
-        )
+        ).set(on: session)
     }
     
     /// Extracts an instance of ``OAuthable/State`` out of the session.

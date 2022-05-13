@@ -27,18 +27,24 @@ public struct OAuthBMSessionData {
         self.randomValue = session[Keys.randomValue]
     }
     
+    /// Initializes an instance
+    /// - Parameters:
+    ///   - customValue: The ``customValue``.
+    ///   - callbackUrl: The ``callbackUrl``.
+    ///   - randomValue: The ``randomValue``.
+    internal init(customValue: String?, callbackUrl: String?, randomValue: String?) {
+        self.customValue = customValue
+        self.callbackUrl = callbackUrl
+        self.randomValue = randomValue
+    }
+    
     /// Sets the ``OAuthBMSessionData`` related parameters to the entered values.
     /// - Parameters:
     ///   - session: The session to set values to.
     ///   - customValue: The ``customValue``.
     ///   - callbackUrl: The ``callbackUrl``.
     ///   - randomValue: The ``randomValue``.
-    internal static func set(
-        session: Session,
-        customValue: String?,
-        callbackUrl: String?,
-        randomValue: String?
-    ) {
+    internal func set(on session: Session) {
         session.data[Keys.customValue] = customValue
         session.data[Keys.callbackUrl] = callbackUrl
         session.data[Keys.randomValue] = randomValue
