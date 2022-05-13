@@ -10,7 +10,7 @@
 /// }
 /// ```
 public struct Issuer: RawRepresentable {
-    private(set) public var rawValue: String
+    public let rawValue: String
     
     public init(rawValue: String) {
         self.rawValue = rawValue
@@ -21,13 +21,11 @@ public struct Issuer: RawRepresentable {
 extension Issuer: Content {
     
     public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        self.rawValue = try container.decode(String.self)
+        self.rawValue = try String(from: decoder)
     }
     
     public func encode(to encoder: Encoder) throws {
-        var container = encoder.singleValueContainer()
-        try container.encode(self.rawValue)
+        try self.rawValue.encode(to: encoder)
     }
 }
 
