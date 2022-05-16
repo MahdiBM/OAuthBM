@@ -33,7 +33,7 @@ extension OAuthable {
         do {
             state = try State.extract(from: req.session)
             let urlState = try State(decodeFrom: req.query)
-            req.session.destroy()
+            OAuthBMSessionData.purge(from: req.session)
             guard state == urlState
             else { throw OAuthableError.serverError(error: .invalidCookies) }
         } catch let thrownError {

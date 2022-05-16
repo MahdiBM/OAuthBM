@@ -50,6 +50,11 @@ public struct OAuthBMSessionData {
         session.data[Keys.randomValue] = randomValue
     }
     
+    internal static func purge(from session: Session) {
+        let newValue = Self(customValue: nil, callbackUrl: nil, randomValue: nil)
+        newValue.set(on: session)
+    }
+    
     /// The session-keys of the values of ``OAuthBMSessionData``.
     private enum Keys {
         static let customValue = "_OAuthBM_customValue"
