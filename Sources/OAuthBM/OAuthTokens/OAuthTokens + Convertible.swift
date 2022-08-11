@@ -49,13 +49,13 @@ public extension OAuthTokenRefreshable where Self: OAuthTokenConvertible {
         if token.tokenHasExpired && token.isRefreshableToken {
             req.logger.debug("Token has expired. Will try to acquire new one.", metadata: [
                 "type": .string("\(Self.self)"),
-                "token": .stringConvertible(token),
+                "token": .string("\(token)"),
             ])
             return try await refreshToken(req, token: token)
         } else {
             req.logger.debug("Token has not expired. Will return the current token.", metadata: [
                 "type": .string("\(Self.self)"),
-                "token": .stringConvertible(token),
+                "token": .string("\(token)"),
             ])
             return token
         }
